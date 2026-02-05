@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>¿Me quieres?</title>
+  <meta name="theme-color" content="#ff4d8d" />
+  <style>
+    :root{
+      --bg1:#0b1220;
+      --bg2:#171a2e;
+      --card:#0f172a;
+      --text:#e5e7eb;
+      --muted:#a1a1aa;
+      --yes:#22c55e;
+      --no:#ef4444;
+      --pink:#ff4d8d;
+      --ring: rgba(255,77,141,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 20% 10%, rgba(255,77,141,.25), transparent 60%),
+                  radial-gradient(900px 500px at 90% 20%, rgba(34,197,94,.18), transparent 55%),
+                  linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow:hidden;
+    }
+    .wrap{
+      min-height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .card{
+      width:min(520px, 100%);
+      background: rgba(15, 23, 42, .72);
+      border:1px solid rgba(255,255,255,.08);
+      backdrop-filter: blur(10px);
+      border-radius:22px;
+      padding:18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      position:relative;
+    }
+    .top{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      font-size:13px;
+      color:var(--muted);
+      user-select:none;
+    }
+    .title{
+      margin:14px 0 6px;
+      font-size: clamp(26px, 4.8vw, 34px);
+      line-height:1.1;
+      letter-spacing:-.02em;
+      text-align:center;
+    }
+    .subtitle{
+      margin:0 0 14px;
+      text-align:center;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .art{
+      display:grid;
+      place-items:center;
+      margin:10px 0 14px;
+    }
+    .blob{
+      width:min(320px, 80vw);
+      aspect-ratio: 1 / 1;
+      border-radius:28px;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,77,141,.35), transparent 55%),
+        radial-gradient(circle at 70% 25%, rgba(34,197,94,.25), transparent 55%),
+        radial-gradient(circle at 50% 70%, rgba(255,255,255,.08), transparent 60%),
+        rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.10);
+      position:relative;
+      overflow:hidden;
+    }
+    .emoji{
+      position:absolute;
+      inset:0;
+      display:grid;
+      place-items:center;
+      font-size: 64px;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,.35));
+    }
+    .tiny{
+      position:absolute;
+      bottom:12px;
+      left:12px;
+      right:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      color:var(--muted);
+      font-size:12px;
+      opacity:.95;
+    }
+
+    .play{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      align-items:center;
+      margin-top:8px;
+      flex-wrap:wrap;
+    }
+    button{
+      border:none;
+      padding:14px 16px;
+      border-radius:14px;
+      font-weight:700;
+      font-size:16px;
+      color:#0b1220;
+      cursor:pointer;
+      min-width: 150px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.28);
+      transition: transform .12s ease, box-shadow .12s ease;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active{transform: scale(.98)}
+    .yes{
+      background: linear-gradient(180deg, rgba(34,197,94,1), rgba(34,197,94,.75));
+    }
+    .no{
+      background: linear-gradient(180deg, rgba(239,68,68,1), rgba(239,68,68,.75));
+      position:relative;
+    }
+    .yes:focus, .no:focus{
+      outline: 4px solid var(--ring);
+      outline-offset: 2px;
+    }
+
+    /* Result screen */
+    .result{
+      display:none;
+      text-align:center;
+      padding:14px 10px 6px;
+    }
+    .result h2{
+      margin:10px 0 6px;
+      font-size: clamp(22px, 4.3vw, 28px);
+    }
+    .result p{margin:0; color:var(--muted)}
+    .big{
+      font-size: 72px;
+      margin-top:6px;
+      animation: pop .6s ease;
+    }
+    @keyframes pop{
+      0%{transform: scale(.6); opacity:0}
+      100%{transform: scale(1); opacity:1}
+    }
+
+    /* Floating hearts */
+    .heart{
+      position:fixed;
+      left:var(--x);
+      bottom:-40px;
+      font-size: 18px;
+      opacity:.9;
+      animation: floatUp var(--dur) linear forwards;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.25));
+      pointer-events:none;
+      user-select:none;
+    }
+    @keyframes floatUp{
+      0%{transform: translateY(0) translateX(0) scale(.9); opacity:0}
+      10%{opacity:.9}
+      100%{transform: translateY(-110vh) translateX(var(--drift)) scale(1.25); opacity:0}
+    }
+
+    .footer{
+      margin-top:14px;
+      text-align:center;
+      color:rgba(255,255,255,.45);
+      font-size:12px;
+      user-select:none;
+    }
+
+    /* Mobile tightening */
+    @media (max-width:360px){
+      button{min-width: 135px}
+      .card{padding:16px}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card" id="card">
+      <div class="top">
+        <div class="badge">💌 Mini sorpresa</div>
+        <div class="badge" id="streak">✨</div>
+      </div>
+
+      <h1 class="title" id="qTitle">¿Me quieres?</h1>
+      <p class="subtitle" id="qSub">Responde con sinceridad… (pero ojo con el NO 😏)</p>
+
+      <div class="art">
+        <div class="blob" id="blob">
+          <div class="emoji" id="emoji">🐻‍❄️💗🐻</div>
+          <div class="tiny">
+            <span>Hecho para móvil</span>
+            <span>1 archivo</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="play" id="buttons">
+        <button class="yes" id="yesBtn">Sí, obvio ❤️</button>
+        <button class="no" id="noBtn">No 🙃</button>
+      </div>
+
+      <div class="result" id="result">
+        <div class="big" id="bigEmoji">🥰</div>
+        <h2 id="resultTitle">¡Sabía que ibas a decir que sí!</h2>
+        <p id="resultText">Ahora me debes un abrazo… y quizá un helado 🍦</p>
+        <div class="play" style="margin-top:14px">
+          <button class="yes" id="shareBtn">Compartir por WhatsApp</button>
+        </div>
+      </div>
+
+      <div class="footer">Si intentas pulsar “No”… buena suerte 😈</div>
+    </div>
+  </div>
+
+  <script>
+    // --------- Helpers ----------
+    const $ = (id) => document.getElementById(id);
+
+    const yesBtn = $("yesBtn");
+    const noBtn  = $("noBtn");
+    const result = $("result");
+    const buttons = $("buttons");
+    const blob = $("blob");
+    const streak = $("streak");
+
+    let noTries = 0;
+    let lastMove = 0;
+
+    // Keep NO button inside card
+    function moveNoButton() {
+      const now = Date.now();
+      if (now - lastMove < 120) return; // throttle
+      lastMove = now;
+
+      noTries++;
+      streak.textContent = `😈 x${noTries}`;
+
+      // Make it harder as tries increase
+      const cardRect = $("card").getBoundingClientRect();
+      const btnRect  = noBtn.getBoundingClientRect();
+
+      // available space inside card
+      const pad = 16;
+      const minX = cardRect.left + pad;
+      const maxX = cardRect.right - pad - btnRect.width;
+      const minY = cardRect.top + 210; // keep away from top title area
+      const maxY = cardRect.bottom - pad - btnRect.height;
+
+      // Random position
+      const x = Math.max(minX, Math.min(maxX, minX + Math.random() * (maxX - minX)));
+      const y = Math.max(minY, Math.min(maxY, minY + Math.random() * (maxY - minY)));
+
+      // Convert to relative using translate on fixed positioning
+      noBtn.style.position = "fixed";
+      noBtn.style.left = `${x}px`;
+      noBtn.style.top  = `${y}px`;
+
+      // small wobble
+      noBtn.animate([
+        { transform: "rotate(0deg) scale(1)" },
+        { transform: "rotate(-4deg) scale(1.02)" },
+        { transform: "rotate(4deg) scale(1.02)" },
+        { transform: "rotate(0deg) scale(1)" }
+      ], { duration: 220, easing: "ease-out" });
+
+      // spawn a few hearts when they fail 😄
+      spawnHearts(3);
+    }
+
+    function spawnHearts(n = 8) {
+      const emojis = ["💗","💖","💕","💘","💞"];
+      for (let i = 0; i < n; i++) {
+        const h = document.createElement("div");
+        h.className = "heart";
+        h.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        const x = Math.random() * 100;
+        const dur = 2200 + Math.random() * 1800;
+        const drift = (Math.random() * 120 - 60).toFixed(0) + "px";
+
+        h.style.setProperty("--x", x + "vw");
+        h.style.setProperty("--dur", dur + "ms");
+        h.style.setProperty("--drift", drift);
+
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), dur + 200);
+      }
+    }
+
+    function showResult() {
+      buttons.style.display = "none";
+      result.style.display = "block";
+      $("qTitle").textContent = "Confirmado:";
+      $("qSub").textContent = "Eres oficialmente mi persona favorita 🫶";
+      $("emoji").textContent = "💞";
+      spawnHearts(14);
+    }
+
+    // --------- Events ----------
+    yesBtn.addEventListener("click", showResult);
+
+    // Desktop hover & mobile "touchstart" triggers escape
+    noBtn.addEventListener("mouseenter", moveNoButton);
+    noBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      moveNoButton();
+    }, { passive:false });
+
+    // If they actually click NO (rare), still troll:
+    noBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      moveNoButton();
+      if (noTries >= 6) {
+        // after enough tries, "convert" them
+        showResult();
+      }
+    });
+
+    // Subtle animated hearts occasionally
+    setInterval(() => {
+      if (result.style.display === "block") return;
+      spawnHearts(1);
+    }, 1800);
+
+    // WhatsApp share (works best once hosted with a URL)
+    $("shareBtn").addEventListener("click", async () => {
+      const url = location.href;
+      const text = "Mira esto 😏 ¿Me quieres? 💗";
+      try{
+        if (navigator.share) {
+          await navigator.share({ title: "¿Me quieres?", text, url });
+        } else {
+          // fallback: open WhatsApp share link
+          window.open(`https://wa.me/?text=${encodeURIComponent(text + " " + url)}`, "_blank");
+        }
+      }catch(err){
+        // ignore if cancelled
+      }
+    });
+
+    // Initial hearts
+    spawnHearts(5);
+  </script>
+</body>
+</html>
