@@ -321,12 +321,8 @@ const TARIFA_DEF={
 /* ============ ESTADO ============ */
 const KEY="parte-hueco-v1";
 const EMPRESA_DEF={nombre:"",cif:"",dir:"",cp:"",ciudad:"",tel:"",email:"",web:"",
-  logo:null,sello:null,color:"#0D6E63",numero:"2026-001",validez:30,
-  plazo:"4 a 6 semanas desde la confirmación del pedido y toma de medidas definitiva.",
-  pago:"40 % a la firma del pedido y el resto a la finalización del montaje.",
-  garantia:"3 años en carpintería y herrajes, 2 años en la instalación.",
-  condiciones:"Las medidas definitivas se confirman en obra antes de pedir a fábrica. No se incluyen trabajos de albañilería, pintura ni retirada de elementos no previstos.",
-  detalle:false};
+  logo:null,sello:null,color:"#0D6E63",numero:"",validez:30,
+  plazo:"", pago:"", garantia:"", condiciones:"", detalle:false};
 function nuevoHueco(nombre){
   return {id:uid(), nombre:nombre||"Hueco nuevo", estancia:"", planta:"Planta baja", ud:1,
     tipologia:"oscilo-2", material:"pvc", serie:"70 mm · 5 cámaras",
@@ -344,6 +340,12 @@ function nuevoHueco(nombre){
     tareas:{}, notas:""};
 }
 function seed(){
+  return {empresa:JSON.parse(JSON.stringify(EMPRESA_DEF)),
+    obra:{nombre:"", cliente:"", tel:"", email:"",
+          fecha:new Date().toISOString().slice(0,10), medidor:"", notas:""},
+    tarifa:JSON.parse(JSON.stringify(TARIFA_DEF)), huecos:[], sel:null, tab:"empresa"};
+}
+function seedEjemplo(){
   const a=nuevoHueco("Salón · ventana a terraza");
   a.estancia="Salón"; a.tipologia="corredera-2"; a.ancho=1800; a.alto=2150; a.material="pvc";
   a.vidrio="44-16-4be"; a.persiana.cajon=205; a.extras.mosquitera=true; a.ejemplo=true;
@@ -361,7 +363,7 @@ function seed(){
 }
 let S;
 try{ const raw=localStorage.getItem(KEY); S=raw?JSON.parse(raw):seed(); }catch(e){ S=seed(); }
-if(!S||!S.huecos||!S.huecos.length) S=seed();
+if(!S||!S.huecos) S=seed();
 S.tarifa=Object.assign(JSON.parse(JSON.stringify(TARIFA_DEF)),S.tarifa||{});
 S.empresa=Object.assign(JSON.parse(JSON.stringify(EMPRESA_DEF)),S.empresa||{});
 let SAVE_OK=true;
@@ -538,7 +540,7 @@ function totalObra(){
   const t=S.tarifa;
   let mat=0,mo=0,coste=0;
   S.huecos.forEach(h=>{const c=calc(h);mat+=c.materialTot;mo+=c.manoObra;coste+=c.costeProv;});
-  const extras=num(t.desplaz)+num(t.retirada);
+  const extras=S.huecos.length?(num(t.desplaz)+num(t.retirada)):0;
   const bruto=mat+mo+extras;
   const dto=bruto*num(t.descuento)/100;
   const base=bruto-dto;
@@ -1432,42 +1434,92 @@ function mapearItem(it){
   return h;
 }
 /* Lectura de partidas sin IA: funciona también en el archivo portable */
+const RAL_COMUNES=[9016,9005,9001,9010,9003,9006,7016,7038,7035,7001,7012,7021,1013,1015,6005,6009,8017,8019,8014,3004,5003,5010,2001,7039,7022];
 function medidaEn(txt){
-  const RAL=[9016,9005,9001,9010,9003,7016,7038,7035,7001,7012,1013,1015,6005,6009,8017,8019,8014,3004,5003,5010,2001];
-  const reA=/(\d{3,4})\s*(?:x|×|\*)/gi; let m, an=0, pos=-1;
-  while((m=reA.exec(txt))){ const v=+m[1]; if(v>=300&&v<=4000&&RAL.indexOf(v)<0){ an=v; pos=m.index+m[0].length; break; } }
+  // 1) medidas en metros: 1,20 x 1,35
+  let m=/(\d{1,2}[.,]\d{1,3})\s*(?:x|×|\*)\s*(\d{1,2}[.,]\d{1,3})/i.exec(txt);
+  if(m){
+    const a=parseFloat(m[1].replace(",",".")), h=parseFloat(m[2].replace(",","."));
+    if(a>=0.2&&a<=6&&h>=0.2&&h<=6) return {a:Math.round(a*1000),h:Math.round(h*1000)};
+  }
+  // 2) etiquetas: ANCHO 1500 ALTO 1100 · A: 1,50 H: 1,10 · L=1500 H=1100
+  const ra=/(?:anch[oa]|anchura|\bl\b|\ba\b)\s*[:=]\s*(\d{1,4}(?:[.,]\d{1,3})?)/i.exec(txt)
+        || /(?:anch[oa]|anchura)\s+(\d{1,4}(?:[.,]\d{1,3})?)/i.exec(txt);
+  const rh=/(?:alt[oa]|altura|\bh\b)\s*[:=]\s*(\d{1,4}(?:[.,]\d{1,3})?)/i.exec(txt)
+        || /(?:alt[oa]|altura)\s+(\d{1,4}(?:[.,]\d{1,3})?)/i.exec(txt);
+  if(ra&&rh){
+    let a=parseFloat(ra[1].replace(",",".")), h=parseFloat(rh[1].replace(",","."));
+    if(a<10) a*=1000; else if(a<400) a*=10;
+    if(h<10) h*=1000; else if(h<400) h*=10;
+    if(a>=300&&a<=6000&&h>=300&&h<=6000) return {a:Math.round(a),h:Math.round(h)};
+  }
+  // 3) medidas enteras: 1200 x 1500 (o en cm si lo dice)
+  const cm=/\bcm\b/i.test(txt);
+  const reA=/(\d{2,4})\s*(?:x|×|\*)/gi; let an=0, pos=-1;
+  while((m=reA.exec(txt))){
+    let v=+m[1];
+    if(cm&&v>=30&&v<=400) v*=10;
+    if(v>=300&&v<=6000&&RAL_COMUNES.indexOf(v)<0){ an=v; pos=m.index+m[0].length; break; }
+  }
   if(!an) return null;
   const resto=txt.slice(pos);
-  const reB=/\d{3,4}/g; let x, al=0;
+  const reB=/\d{2,4}/g; let x, al=0;
   while((x=reB.exec(resto))){
     const i0=x.index, i1=i0+x[0].length;
     const prev=resto.charAt(i0-1)||" ", next=resto.charAt(i1)||" ";
     if(/[\d.,]/.test(prev)||/[\d.,]/.test(next)) continue;
-    const v=+x[0];
-    if(RAL.indexOf(v)>=0||v<300||v>4000) continue;
+    let v=+x[0];
+    if(cm&&v>=30&&v<=400) v*=10;
+    if(RAL_COMUNES.indexOf(v)>=0||v<300||v>6000) continue;
     al=v; break;
   }
   return al?{a:an,h:al}:null;
 }
+function valorEur(t){ return parseFloat(String(t).replace(/\./g,"").replace(",",".")); }
 function parsearLocal(texto){
-  const ESTANCIAS=["salón","salon","cocina","baño","bano","aseo","dormitorio","habitación","habitacion","terraza","pasillo","comedor","despacho","garaje","trastero","recibidor","ático","atico"];
+  const ESTANCIAS=["salón","salon","cocina","baño","bano","aseo","dormitorio","habitación","habitacion","terraza","pasillo","comedor","despacho","garaje","trastero","recibidor","ático","atico","buhardilla","estudio","vestíbulo","vestibulo"];
   const lineas=String(texto).split(/\r?\n/);
   const rePre=/\d{1,3}(?:\.\d{3})+,\d{2}|\d+,\d{2}/g;
+  const reMedDec=/(\d{1,2}[.,]\d{1,3})\s*(?:x|×|\*)\s*(\d{1,2}[.,]\d{1,3})/gi;
+  const esPrecio=x=>{ const c=String(x).replace(reMedDec," "); reMedDec.lastIndex=0; rePre.lastIndex=0; return rePre.test(c); };
   const items=[];
   for(let i=0;i<lineas.length;i++){
     const L=lineas[i], low=L.toLowerCase();
-    const precios=L.match(rePre);
+    if(/base imponible|^\s*total|total:|iva|i\.v\.a|subtotal|portes|transporte|descuento|forma de pago|plazo de/.test(low)) continue;
+    // los importes se buscan sin las medidas decimales, que si no se confunden con precios
+    const sinMed=L.replace(reMedDec," "); reMedDec.lastIndex=0;
+    const precios=sinMed.match(rePre);
     if(!precios||!precios.length) continue;
-    if(/base imponible|^\s*total|total:|iva|i\.v\.a|subtotal|portes|transporte|descuento|forma de pago|plazo/.test(low)) continue;
-    const coste=parseFloat(precios[precios.length-1].replace(/\./g,"").replace(",","."));
+    let coste=valorEur(precios[precios.length-1]);
     if(!isFinite(coste)||coste<=0) continue;
-    // bloque de la partida: se extiende hasta tocar otra línea con precio
+    // bloque de la partida, cortado por las líneas de otras partidas
+    const esCabecera=x=>/^\s*(pos\.?|ref\.?|partida|art\.?|c[oó]d\.?|item|linea|línea)\s*[:nº#]*\s*\d/i.test(x||"");
     const bloque=[L];
-    for(let k=i-1;k>=Math.max(0,i-3);k--){ if(rePre.test(lineas[k])){ rePre.lastIndex=0; break; } rePre.lastIndex=0; bloque.unshift(lineas[k]); }
-    for(let k=i+1;k<Math.min(lineas.length,i+3);k++){ if(rePre.test(lineas[k])){ rePre.lastIndex=0; break; } rePre.lastIndex=0; bloque.push(lineas[k]); }
+    for(let k=i-1;k>=Math.max(0,i-5);k--){
+      if(esPrecio(lineas[k])) break;
+      bloque.unshift(lineas[k]);
+      if(esCabecera(lineas[k])) break;        // es el encabezado de esta partida: no subir más
+    }
+    for(let k=i+1;k<Math.min(lineas.length,i+3);k++){
+      if(esPrecio(lineas[k])||esCabecera(lineas[k])) break;   // empieza otra partida
+      bloque.push(lineas[k]);
+    }
     const win=bloque.join(" ");
     const med=medidaEn(L)||medidaEn(win);
     if(!med) continue;
+    // unidades: por la palabra "ud" o porque el importe es múltiplo exacto del precio unitario
+    let ud=1;
+    const mu=/(\d{1,2})\s*(?:uds?\b|unid)/i.exec(L);
+    if(mu && +mu[1]>0 && +mu[1]<100) ud=+mu[1];
+    if(precios.length>=2){
+      const ant=valorEur(precios[precios.length-2]);
+      if(isFinite(ant)&&ant>0){
+        if(ud>1 && Math.abs(ant*ud-coste)<=Math.max(0.02,coste*0.005)) coste=ant;
+        else if(ud===1){
+          for(let k=2;k<=30;k++){ if(Math.abs(ant*k-coste)<=Math.max(0.02,coste*0.005)){ ud=k; coste=ant; break; } }
+        }
+      }
+    }
     const t=win.toLowerCase();
     let tip="practicable-1";
     const hojas=(/(\d)\s*hoja/.exec(t)||[])[1];
@@ -1501,7 +1553,7 @@ function parsearLocal(texto){
     else if(/control solar/.test(t)) vid="ctrl-solar";
     else if(/bajo emisivo|b\.?e\.?[\s,.]|térmic|termic/.test(t)) vid="4be-16-4";
     else vid="4-16-4";
-    const pers={on:/persiana/.test(t)};
+    const pers={on:/persiana/.test(t) && !/sin persiana|no lleva persiana|sin caj[óo]n|persiana:\s*no/.test(t)};
     if(pers.on){
       const cj=/caj[óo]n\s*(?:de\s*)?(\d{3})/.exec(t);
       pers.cajon=cj?+cj[1]:185;
@@ -1519,7 +1571,7 @@ function parsearLocal(texto){
     bloque.forEach(x=>{
       const limpio=x.replace(rePre,"").replace(/[€]/g,"").trim();
       const letras=(limpio.match(/[A-Za-zÁÉÍÓÚÑáéíóúñ]/g)||[]).length;
-      if(letras>8 && !/base imponible|iva|total|presupuesto|cliente|obra:|descripci|importe/i.test(limpio)
+      if(letras>8 && !/base imponible|iva|total|presupuesto|cliente|obra:|descripci|importe|fecha|^cif|tel\.|@|pol\.|nave |p\.unit|precio ud/i.test(limpio)
          && limpio.length>desc.length) desc=limpio;
     });
     let nombre=desc.replace(/^[\s|]*\d{1,3}[\s.\-|)]+/,"").replace(/(\d{3,4})\s*(?:x|×)\s*(\d{3,4})?/gi,"")
@@ -1528,12 +1580,12 @@ function parsearLocal(texto){
     if(est && nombre.toLowerCase().indexOf(est)<0) nombre=est.charAt(0).toUpperCase()+est.slice(1)+" · "+nombre;
     if(nombre.length>70) nombre=nombre.slice(0,70).trim();
     if(!nombre) nombre=TIPOS[tip].n;
-    items.push({nombre:nombre,tipologia:tip,material:mat,ancho:med.a,alto:med.h,ud:1,
+    items.push({nombre:nombre,tipologia:tip,material:mat,ancho:med.a,alto:med.h,ud:ud,
       color:col,vidrio:vid,persiana:pers,extras:extras,coste:coste,notas:""});
   }
   // quitar repeticiones por precio y medida
   const vistos={}, out=[];
-  items.forEach(it=>{ const k=it.ancho+"|"+it.alto+"|"+it.coste; if(vistos[k]) return; vistos[k]=1; out.push(it); });
+  items.forEach(it=>{ const k=it.ancho+"|"+it.alto+"|"+it.coste+"|"+it.ud; if(vistos[k]) return; vistos[k]=1; out.push(it); });
   return out;
 }
 async function interpretarPDF(){
@@ -1678,10 +1730,11 @@ function vEmpresa(){
       ${fTxt("Nº de presupuesto","empresa.numero","2026-001")}
       ${fNum("Validez (días)","empresa.validez","")}
     </div>
-    <div class="f" style="margin-top:10px"><label>Plazo de entrega</label><textarea rows="2" data-path="empresa.plazo">${esc(E.plazo||"")}</textarea></div>
-    <div class="f" style="margin-top:10px"><label>Forma de pago</label><textarea rows="2" data-path="empresa.pago">${esc(E.pago||"")}</textarea></div>
-    <div class="f" style="margin-top:10px"><label>Garantía</label><textarea rows="2" data-path="empresa.garantia">${esc(E.garantia||"")}</textarea></div>
-    <div class="f" style="margin-top:10px"><label>Otras condiciones</label><textarea rows="3" data-path="empresa.condiciones">${esc(E.condiciones||"")}</textarea></div>
+    <div class="f" style="margin-top:10px"><label>Plazo de entrega</label><textarea rows="2" data-path="empresa.plazo" placeholder="4 a 6 semanas desde la confirmación del pedido">${esc(E.plazo||"")}</textarea></div>
+    <div class="f" style="margin-top:10px"><label>Forma de pago</label><textarea rows="2" data-path="empresa.pago" placeholder="40 % a la firma y el resto al terminar el montaje">${esc(E.pago||"")}</textarea></div>
+    <div class="f" style="margin-top:10px"><label>Garantía</label><textarea rows="2" data-path="empresa.garantia" placeholder="3 años en carpintería y herrajes, 2 en la instalación">${esc(E.garantia||"")}</textarea></div>
+    <div class="f" style="margin-top:10px"><label>Otras condiciones</label><textarea rows="3" data-path="empresa.condiciones" placeholder="Lo que no incluye el precio, albañilería, pintura, retirada de elementos no previstos...">${esc(E.condiciones||"")}</textarea></div>
+    <div class="hint" style="margin-top:8px">Lo que escribas aquí sale en todos los presupuestos. Lo que dejes vacío, no aparece.</div>
     <div style="margin-top:10px">${fChk("Desglosar los precios de cada partida en el PDF","empresa.detalle",true)}</div>
   </div>
   <div class="card"><h3>Descargar</h3>
@@ -1754,6 +1807,20 @@ function vImportar(){
     <div class="note i" style="margin-top:10px"><span class="ic">i</span><span>Estos datos quedan solo para ti: no aparecen en el presupuesto que ve tu cliente.</span></div>
   </div>`:""}`;
 }
+function vVacio(){
+  return `<div class="sect-title">Todavía no hay ningún hueco</div>
+  <div class="sect-sub">Empieza por donde te venga mejor.</div>
+  <div class="card">
+    <div class="row">
+      <button class="btn" data-act="add">Medir un hueco a mano</button>
+      <button class="btn sec" data-act="irimportar">Importar el PDF del proveedor</button>
+    </div>
+    <div class="note i" style="margin-top:12px"><span class="ic">i</span><span>Si vienes con el presupuesto de una empresa de ventanas, impórtalo: cada partida se convierte en un hueco con su coste y tú solo pones tu margen.</span></div>
+  </div>
+  ${!S.empresa.nombre?`<div class="card"><h3>Antes de empezar</h3>
+    <div class="note w" style="margin:0"><span class="ic">!</span><span>Pon el nombre de tu empresa y tu logotipo en la pestaña Empresa: es lo que saldrá en la cabecera de todos los presupuestos.</span></div>
+  </div>`:""}`;
+}
 function vObra(){
   const t=totalObra();
   return `<div class="sect-title">Datos de la obra</div>
@@ -1770,6 +1837,7 @@ function vObra(){
     <div class="f" style="margin-top:10px"><label>Notas de obra</label><textarea rows="2" data-path="obra.notas" placeholder="Acceso, ascensor, horarios, quién retira escombro...">${esc(S.obra.notas)}</textarea></div>
   </div>
   <div class="card"><h3>Huecos medidos (${S.huecos.length})</h3>
+    ${!S.huecos.length?`<div class="empty">Ningún hueco todavía. Añade uno o importa el PDF del proveedor.</div>`:""}
     ${S.huecos.map((h,i)=>{ const c=calc(h); const dan=c.av.filter(a=>a.t==="d").length, war=c.av.filter(a=>a.t==="w").length;
       return `<button class="hueco${h.id===S.sel?" sel":""}" data-pick="${h.id}">
         <span class="ix">${String(i+1).padStart(2,"0")}</span>
@@ -1782,8 +1850,8 @@ function vObra(){
       </button>`; }).join("")}
     <div class="row" style="margin-top:10px">
       <button class="btn" data-act="add">Añadir hueco</button>
-      <button class="btn sec" data-act="dup">Duplicar seleccionado</button>
-      ${S.huecos.length>1?'<button class="btn danger" data-act="del">Eliminar</button>':""}
+      ${S.huecos.length?'<button class="btn sec" data-act="dup">Duplicar seleccionado</button>':""}
+      ${S.huecos.length?'<button class="btn danger" data-act="del">Eliminar</button>':""}
     </div>
   </div>
   <div class="card"><h3>Resumen económico</h3>
@@ -2192,15 +2260,16 @@ function renderAll(){
   renderTabs();
   const aviso = SAVE_OK ? "" : `<div class="note d" style="margin-bottom:12px"><span class="ic">!!</span><span><b>Este navegador no está guardando nada.</b> Has abierto el archivo desde el gestor de archivos (dirección <span class="mono">content://</span>) y ahí no se puede guardar. Escribe en la barra de Chrome <span class="mono">file:///sdcard/Download/Parte-de-Hueco.html</span> y ábrelo así, o usa la versión en claude.ai. Mientras tanto copia tus datos desde Pedido antes de cerrar.</span></div>`;
   const v={empresa:vEmpresa,importar:vImportar,obra:vObra,medidas:vMedidas,persiana:vPersiana,vidrio:vVidrio,materiales:vMateriales,montaje:vMontaje,precio:vPrecio,pedido:vPedido}[S.tab]||vObra;
-  $("#view").innerHTML=aviso+v();
+  const pideHueco={medidas:1,persiana:1,vidrio:1,materiales:1,montaje:1,precio:1,pedido:1};
+  $("#view").innerHTML=aviso+((!S.huecos.length&&pideHueco[S.tab])?vVacio():v());
   renderSticky();
   save();
 }
 function refresh(){
   // actualiza resultados sin tocar los campos en edición
   renderSticky();
-  const h=sel(), c=calc(h);
-  const av=document.getElementById("avisos"); if(av) av.innerHTML=avisosHTML(c);
+  const h=sel();
+  if(h){ const av=document.getElementById("avisos"); if(av) av.innerHTML=avisosHTML(calc(h)); }
   $("#obraName").textContent=S.obra.nombre||"Obra";
   $("#obraSub").textContent=(S.obra.cliente||"")+(S.obra.fecha?" · "+S.obra.fecha:"");
   if(S.tab==="medidas"||S.tab==="persiana"||S.tab==="vidrio"||S.tab==="materiales"||S.tab==="precio"||S.tab==="obra"||S.tab==="montaje"){
@@ -2279,6 +2348,9 @@ document.addEventListener("click",e=>{
   const act=e.target.closest("[data-act]");
   if(!act) return;
   const a=act.dataset.act, h=sel();
+  if(a==="irimportar"){ S.tab="importar"; clearTimeout(refresh._t); renderAll(); window.scrollTo({top:0}); return; }
+  if(!h && (a==="dup"||a==="del"||a==="pdf"||a==="pdftaller")){
+    msgBox("pdfMsgE","w","Añade o importa al menos un hueco antes de generar el presupuesto."); return; }
   if(a==="pdf"||a==="pdftaller"){
     const box=document.getElementById("pdfMsgP")?"pdfMsgP":(document.getElementById("pdfMsgD")?"pdfMsgD":"pdfMsgE");
     descargarPDF(a==="pdf"?"presupuesto":"taller",box);
@@ -2289,8 +2361,7 @@ document.addEventListener("click",e=>{
   else if(a==="impcrear"){
     const nuevos=IMP.items.filter(r=>r.sel).map(r=>mapearItem(r.it));
     if(!nuevos.length){ msgBox("impMsg2","w","No has marcado ninguna partida."); return; }
-    S.huecos=S.huecos.filter(x=>!x.ejemplo).concat(nuevos);
-    if(!S.huecos.length) S.huecos=nuevos;
+    S.huecos=S.huecos.concat(nuevos);
     S.sel=nuevos[0].id; IMP.items=[]; IMP.estado=""; S.tab="obra";
     clearTimeout(refresh._t); renderAll(); window.scrollTo({top:0});
   }
