@@ -1,5 +1,5 @@
 /* Parte de Hueco — funcionamiento sin conexión */
-const CACHE = "parte-hueco-v2";
+const CACHE = "parte-hueco-v3";
 const BASE = [
   "./", "./index.html", "./manifest.webmanifest",
   "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"
