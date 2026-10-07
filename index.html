@@ -322,7 +322,7 @@ const TARIFA_DEF={
 const KEY="parte-hueco-v1";
 const EMPRESA_DEF={nombre:"",cif:"",dir:"",cp:"",ciudad:"",tel:"",email:"",web:"",
   logo:null,sello:null,color:"#0D6E63",numero:"",validez:30,
-  plazo:"", pago:"", garantia:"", condiciones:"", detalle:false};
+  plazo:"", pago:"", garantia:"", condiciones:"", detalle:false, dibujo:true};
 function nuevoHueco(nombre){
   return {id:uid(), nombre:nombre||"Hueco nuevo", estancia:"", planta:"Planta baja", ud:1,
     tipologia:"oscilo-2", material:"pvc", serie:"70 mm · 5 cámaras",
@@ -1175,14 +1175,20 @@ function pdfPresupuesto(){
   d.y=y;
   S.huecos.forEach((h,i)=>{
     const c=calc(h), ls=lineasHueco(h,c);
-    d.need(40+ls.length*11);
+    const conDibujo = E.dibujo!==false && c.anchoFab>0 && c.altoFab>0;
+    d.need(Math.max(40+ls.length*11, conDibujo?150:0));
     let yy=d.y;
     d.text(String(i+1).padStart(2,"0"),d.ml,yy,{size:9.5,bold:true,color:AC});
     d.text(h.nombre,d.ml+24,yy,{size:10.5,bold:true});
-    d.text("×"+c.ud,430,yy,{size:9.5,align:"right",color:MUT});
+    d.text("×"+c.ud,418,yy,{size:9.5,align:"right",color:MUT});
     d.text(eur(c.totalHueco),d.R,yy,{size:10.5,bold:true,align:"right"});
     yy-=13;
-    ls.forEach(l=>{ yy-=d.para(l,d.ml+24,yy,350,{size:8.3,color:MUT,lh:10.6}); });
+    const yDib=yy;
+    ls.forEach(l=>{ yy-=d.para(l,d.ml+24,yy,330,{size:8.3,color:MUT,lh:10.6}); });
+    if(conDibujo){
+      const alto=elevPDF(d,440,yDib-2,100,88,c);
+      yy=Math.min(yy,yDib-2-alto-4);
+    }
     if(E.detalle){
       yy-=2;
       c.linea.forEach(l=>{ d.text(l.c,d.ml+24,yy,{size:7.8,color:MUT});
@@ -1797,7 +1803,10 @@ function vEmpresa(){
     <div class="f" style="margin-top:10px"><label>Garantía</label><textarea rows="2" data-path="empresa.garantia" placeholder="3 años en carpintería y herrajes, 2 en la instalación">${esc(E.garantia||"")}</textarea></div>
     <div class="f" style="margin-top:10px"><label>Otras condiciones</label><textarea rows="3" data-path="empresa.condiciones" placeholder="Lo que no incluye el precio, albañilería, pintura, retirada de elementos no previstos...">${esc(E.condiciones||"")}</textarea></div>
     <div class="hint" style="margin-top:8px">Lo que escribas aquí sale en todos los presupuestos. Lo que dejes vacío, no aparece.</div>
-    <div style="margin-top:10px">${fChk("Desglosar los precios de cada partida en el PDF","empresa.detalle",true)}</div>
+    <div class="grid g2" style="margin-top:10px">
+      ${fChk("Dibujar el alzado de cada hueco en el presupuesto","empresa.dibujo",true)}
+      ${fChk("Desglosar los precios de cada partida","empresa.detalle",true)}
+    </div>
   </div>
   <div class="card"><h3>Descargar</h3>
     <div class="row">
