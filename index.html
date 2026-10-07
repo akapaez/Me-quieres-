@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Parte de hueco para montadores de ventanas, puertas y mamparas: medida de fabricación, vidrio, persiana, materiales y presupuesto en PDF.">
+<meta name="description" content="Aplomo: medidas de fabricación, vidrio, persiana, materiales y presupuesto en PDF para montadores de ventanas, puertas y mamparas.">
 <meta name="theme-color" content="#0D6E63">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Parte Hueco">
+<meta name="apple-mobile-web-app-title" content="Aplomo">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>Parte de Hueco</title>
+<title>Aplomo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -2329,7 +2329,7 @@ function renderAll(){
   $("#obraName").textContent=S.obra.nombre||"Obra";
   $("#obraSub").textContent=(S.obra.cliente||"")+(S.obra.fecha?" · "+S.obra.fecha:"");
   renderTabs();
-  const aviso = SAVE_OK ? "" : `<div class="note d" style="margin-bottom:12px"><span class="ic">!!</span><span><b>Este navegador no está guardando nada.</b> Has abierto el archivo desde el gestor de archivos (dirección <span class="mono">content://</span>) y ahí no se puede guardar. Escribe en la barra de Chrome <span class="mono">file:///sdcard/Download/Parte-de-Hueco.html</span> y ábrelo así, o usa la versión en claude.ai. Mientras tanto copia tus datos desde Pedido antes de cerrar.</span></div>`;
+  const aviso = SAVE_OK ? "" : `<div class="note d" style="margin-bottom:12px"><span class="ic">!!</span><span><b>Este navegador no está guardando nada.</b> Has abierto el archivo desde el gestor de archivos (dirección <span class="mono">content://</span>) y ahí no se puede guardar. Escribe en la barra de Chrome <span class="mono">file:///sdcard/Download/Aplomo.html</span> y ábrelo así, o usa la versión en claude.ai. Mientras tanto copia tus datos desde Pedido antes de cerrar.</span></div>`;
   const v={empresa:vEmpresa,importar:vImportar,obra:vObra,medidas:vMedidas,persiana:vPersiana,vidrio:vVidrio,materiales:vMateriales,montaje:vMontaje,precio:vPrecio,pedido:vPedido}[S.tab]||vObra;
   const pideHueco={medidas:1,persiana:1,vidrio:1,materiales:1,montaje:1,precio:1,pedido:1};
   $("#view").innerHTML=aviso+((!S.huecos.length&&pideHueco[S.tab])?vVacio():v());
