@@ -1,377 +1,2370 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>¿Me quieres?</title>
-  <meta name="theme-color" content="#ff4d8d" />
-  <style>
-    :root{
-      --bg1:#0b1220;
-      --bg2:#171a2e;
-      --card:#0f172a;
-      --text:#e5e7eb;
-      --muted:#a1a1aa;
-      --yes:#22c55e;
-      --no:#ef4444;
-      --pink:#ff4d8d;
-      --ring: rgba(255,77,141,.35);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--text);
-      background: radial-gradient(1200px 600px at 20% 10%, rgba(255,77,141,.25), transparent 60%),
-                  radial-gradient(900px 500px at 90% 20%, rgba(34,197,94,.18), transparent 55%),
-                  linear-gradient(180deg, var(--bg1), var(--bg2));
-      overflow:hidden;
-    }
-    .wrap{
-      min-height:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-    }
-    .card{
-      width:min(520px, 100%);
-      background: rgba(15, 23, 42, .72);
-      border:1px solid rgba(255,255,255,.08);
-      backdrop-filter: blur(10px);
-      border-radius:22px;
-      padding:18px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.35);
-      position:relative;
-    }
-    .top{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 12px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      font-size:13px;
-      color:var(--muted);
-      user-select:none;
-    }
-    .title{
-      margin:14px 0 6px;
-      font-size: clamp(26px, 4.8vw, 34px);
-      line-height:1.1;
-      letter-spacing:-.02em;
-      text-align:center;
-    }
-    .subtitle{
-      margin:0 0 14px;
-      text-align:center;
-      color:var(--muted);
-      font-size:14px;
-    }
-
-    .art{
-      display:grid;
-      place-items:center;
-      margin:10px 0 14px;
-    }
-    .blob{
-      width:min(320px, 80vw);
-      aspect-ratio: 1 / 1;
-      border-radius:28px;
-      background:
-        radial-gradient(circle at 30% 25%, rgba(255,77,141,.35), transparent 55%),
-        radial-gradient(circle at 70% 25%, rgba(34,197,94,.25), transparent 55%),
-        radial-gradient(circle at 50% 70%, rgba(255,255,255,.08), transparent 60%),
-        rgba(255,255,255,.03);
-      border:1px solid rgba(255,255,255,.10);
-      position:relative;
-      overflow:hidden;
-    }
-    .emoji{
-      position:absolute;
-      inset:0;
-      display:grid;
-      place-items:center;
-      font-size: 64px;
-      filter: drop-shadow(0 10px 20px rgba(0,0,0,.35));
-    }
-    .tiny{
-      position:absolute;
-      bottom:12px;
-      left:12px;
-      right:12px;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      color:var(--muted);
-      font-size:12px;
-      opacity:.95;
-    }
-
-    .play{
-      display:flex;
-      gap:10px;
-      justify-content:center;
-      align-items:center;
-      margin-top:8px;
-      flex-wrap:wrap;
-    }
-    button{
-      border:none;
-      padding:14px 16px;
-      border-radius:14px;
-      font-weight:700;
-      font-size:16px;
-      color:#0b1220;
-      cursor:pointer;
-      min-width: 150px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.28);
-      transition: transform .12s ease, box-shadow .12s ease;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-    button:active{transform: scale(.98)}
-    .yes{
-      background: linear-gradient(180deg, rgba(34,197,94,1), rgba(34,197,94,.75));
-    }
-    .no{
-      background: linear-gradient(180deg, rgba(239,68,68,1), rgba(239,68,68,.75));
-      position:relative;
-    }
-    .yes:focus, .no:focus{
-      outline: 4px solid var(--ring);
-      outline-offset: 2px;
-    }
-
-    /* Result screen */
-    .result{
-      display:none;
-      text-align:center;
-      padding:14px 10px 6px;
-    }
-    .result h2{
-      margin:10px 0 6px;
-      font-size: clamp(22px, 4.3vw, 28px);
-    }
-    .result p{margin:0; color:var(--muted)}
-    .big{
-      font-size: 72px;
-      margin-top:6px;
-      animation: pop .6s ease;
-    }
-    @keyframes pop{
-      0%{transform: scale(.6); opacity:0}
-      100%{transform: scale(1); opacity:1}
-    }
-
-    /* Floating hearts */
-    .heart{
-      position:fixed;
-      left:var(--x);
-      bottom:-40px;
-      font-size: 18px;
-      opacity:.9;
-      animation: floatUp var(--dur) linear forwards;
-      filter: drop-shadow(0 6px 10px rgba(0,0,0,.25));
-      pointer-events:none;
-      user-select:none;
-    }
-    @keyframes floatUp{
-      0%{transform: translateY(0) translateX(0) scale(.9); opacity:0}
-      10%{opacity:.9}
-      100%{transform: translateY(-110vh) translateX(var(--drift)) scale(1.25); opacity:0}
-    }
-
-    .footer{
-      margin-top:14px;
-      text-align:center;
-      color:rgba(255,255,255,.45);
-      font-size:12px;
-      user-select:none;
-    }
-
-    /* Mobile tightening */
-    @media (max-width:360px){
-      button{min-width: 135px}
-      .card{padding:16px}
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Parte de hueco para montadores de ventanas, puertas y mamparas: medida de fabricación, vidrio, persiana, materiales y presupuesto en PDF.">
+<meta name="theme-color" content="#0D6E63">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Parte Hueco">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Parte de Hueco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+  :root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+  html,body{margin:0}
+  body{font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#F7F7F5}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
 </head>
-
 <body>
-  <div class="wrap">
-    <div class="card" id="card">
-      <div class="top">
-        <div class="badge">💌 Mini sorpresa</div>
-        <div class="badge" id="streak">✨</div>
-      </div>
+<style>
+/* Layout: hoja de taller — barra de obra fija arriba, pestañas desplazables, bloques apilados en una columna, resultado fijo abajo */
+:root{
+  --bg:#F2F4F2; --surface:#FFFFFF; --surface-2:#E7EBE8; --surface-3:#DCE2DE;
+  --line:#CFD6D1; --line-2:#B6C0B9;
+  --ink:#141918; --ink-2:#56615C; --ink-3:#7C8781;
+  --accent:#0D6E63; --accent-2:#0A574E; --on-accent:#FFFFFF;
+  --warn:#9A5A12; --warn-bg:#FBEEDC;
+  --danger:#9E2B20; --danger-bg:#FAE6E3;
+  --ok:#2C6B3A; --ok-bg:#E2F0E4;
+  --blue:#2A5D80;
+  --f-disp:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --f-body:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;
+  --f-mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+  --r:10px; --sh:0 1px 2px rgba(20,25,24,.07), 0 6px 18px rgba(20,25,24,.05);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#101413; --surface:#181E1C; --surface-2:#1F2624; --surface-3:#28302D;
+  --line:#2E3733; --line-2:#3E4945;
+  --ink:#EAEFEC; --ink-2:#A3AEA9; --ink-3:#7F8A85;
+  --accent:#36A596; --accent-2:#4CBFAF; --on-accent:#06201C;
+  --warn:#E0A95F; --warn-bg:#32270F;
+  --danger:#F08C80; --danger-bg:#361714;
+  --ok:#78C98A; --ok-bg:#132A18;
+  --blue:#79B4DC;
+  --sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#101413; --surface:#181E1C; --surface-2:#1F2624; --surface-3:#28302D;
+  --line:#2E3733; --line-2:#3E4945;
+  --ink:#EAEFEC; --ink-2:#A3AEA9; --ink-3:#7F8A85;
+  --accent:#36A596; --accent-2:#4CBFAF; --on-accent:#06201C;
+  --warn:#E0A95F; --warn-bg:#32270F;
+  --danger:#F08C80; --danger-bg:#361714;
+  --ok:#78C98A; --ok-bg:#132A18;
+  --blue:#79B4DC;
+  --sh:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;margin:0;-webkit-text-size-adjust:100%}
+h1,h2,h3,h4{font-family:var(--f-disp);margin:0;text-wrap:balance;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 
-      <h1 class="title" id="qTitle">¿Me quieres?</h1>
-      <p class="subtitle" id="qSub">Responde con sinceridad… (pero ojo con el NO 😏)</p>
+/* ---- barra superior ---- */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{padding:10px 16px 8px;display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;min-width:0}
+.mark{width:26px;height:26px;flex:none;border:2px solid var(--accent);border-radius:3px;position:relative}
+.mark::after{content:"";position:absolute;inset:4px;border-top:2px solid var(--accent);border-right:2px solid var(--accent);transform:rotate(0deg)}
+.brand b{font-family:var(--f-disp);font-size:15px;font-weight:700;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand span{display:block;font-size:11px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase}
+.top-act{margin-left:auto;display:flex;gap:6px}
+.iconbtn{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;font-size:14px}
+.iconbtn:hover{border-color:var(--line-2)}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;padding:0 12px 10px;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;background:transparent;border:1px solid var(--line);color:var(--ink-2);border-radius:999px;padding:6px 13px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+.tab .n{font-family:var(--f-mono);opacity:.7;margin-left:5px;font-size:11px}
 
-      <div class="art">
-        <div class="blob" id="blob">
-          <div class="emoji" id="emoji">🐻‍❄️💗🐻</div>
-          <div class="tiny">
-            <span>Hecho para móvil</span>
-            <span>1 archivo</span>
-          </div>
-        </div>
-      </div>
+/* ---- contenido ---- */
+main{padding:14px 16px 150px;max-width:860px;margin:0 auto}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.card.flat{background:transparent;border:none;padding:0}
+.card > h3{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card > h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.sect-title{font-size:20px;font-weight:700;margin-bottom:3px}
+.sect-sub{color:var(--ink-2);font-size:13px;margin-bottom:14px}
 
-      <div class="play" id="buttons">
-        <button class="yes" id="yesBtn">Sí, obvio ❤️</button>
-        <button class="no" id="noBtn">No 🙃</button>
-      </div>
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:520px){ .g3{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f label{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+.f input,.f select,.f textarea{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;font-size:15px}
+.f input:focus,.f select:focus,.f textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.f input[type=number]{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.f .hint{font-size:11px;color:var(--ink-3)}
+.f.inline{flex-direction:row;align-items:center;gap:9px}
+.chk{display:flex;align-items:center;gap:9px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;cursor:pointer;font-size:14px}
+.chk input{width:18px;height:18px;accent-color:var(--accent);flex:none}
+.chk.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
 
-      <div class="result" id="result">
-        <div class="big" id="bigEmoji">🥰</div>
-        <h2 id="resultTitle">¡Sabía que ibas a decir que sí!</h2>
-        <p id="resultText">Ahora me debes un abrazo… y quizá un helado 🍦</p>
-        <div class="play" style="margin-top:14px">
-          <button class="yes" id="shareBtn">Compartir por WhatsApp</button>
-        </div>
-      </div>
+.btn{background:var(--accent);color:var(--on-accent);border:1px solid var(--accent);border-radius:9px;padding:10px 14px;font-weight:600;font-size:14px;cursor:pointer}
+.btn:hover{background:var(--accent-2);border-color:var(--accent-2)}
+.btn.sec{background:var(--surface-2);color:var(--ink);border-color:var(--line)}
+.btn.sec:hover{background:var(--surface-3);border-color:var(--line-2)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn.danger{background:transparent;color:var(--danger);border-color:var(--line)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
 
-      <div class="footer">Si intentas pulsar “No”… buena suerte 😈</div>
+/* ---- lista de huecos ---- */
+.hueco{display:flex;gap:11px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:11px 12px;margin-bottom:8px;cursor:pointer;text-align:left;width:100%}
+.hueco:hover{border-color:var(--line-2)}
+.hueco.sel{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.hueco .ix{font-family:var(--f-mono);font-size:12px;font-weight:600;color:var(--ink-3);width:24px;flex:none}
+.hueco .nm{font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hueco .mt{font-family:var(--f-mono);font-size:12px;color:var(--ink-2)}
+.hueco .pr{margin-left:auto;text-align:right;font-family:var(--f-mono);font-size:13px;font-weight:600;flex:none}
+
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.03em;padding:2px 8px;border-radius:999px;background:var(--surface-3);color:var(--ink-2);white-space:nowrap}
+.pill.ac{background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent)}
+.pill.wa{background:var(--warn-bg);color:var(--warn)}
+.pill.da{background:var(--danger-bg);color:var(--danger)}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+
+/* ---- resultados ---- */
+.res{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.res > div{background:var(--surface);padding:11px 12px}
+.res .k{font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.res .v{font-family:var(--f-mono);font-size:19px;font-weight:600;letter-spacing:-.02em;margin-top:2px}
+.res .v small{font-size:12px;font-weight:500;color:var(--ink-2);letter-spacing:0}
+.res .s{font-size:11.5px;color:var(--ink-2);margin-top:1px}
+.res .wide{grid-column:1/-1}
+
+table.t{width:100%;border-collapse:collapse;font-size:13.5px}
+table.t th{text-align:left;font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);padding:5px 8px;border-bottom:1px solid var(--line)}
+table.t td{padding:7px 8px;border-bottom:1px solid var(--line)}
+table.t tr:last-child td{border-bottom:none}
+table.t td.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+table.t tr.tot td{font-weight:700;border-top:2px solid var(--line-2);background:var(--surface-2)}
+.scroll-x{overflow-x:auto}
+
+.note{display:flex;gap:9px;align-items:flex-start;border-radius:9px;padding:9px 11px;font-size:13px;margin-bottom:7px;line-height:1.35}
+.note b{font-weight:600}
+.note.w{background:var(--warn-bg);color:var(--warn)}
+.note.d{background:var(--danger-bg);color:var(--danger)}
+.note.i{background:var(--surface-2);color:var(--ink-2)}
+.note.o{background:var(--ok-bg);color:var(--ok)}
+.note .ic{font-family:var(--f-mono);font-weight:700;flex:none}
+
+.task{display:flex;gap:10px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.task:last-child{border-bottom:none}
+.task input{width:19px;height:19px;margin-top:1px;accent-color:var(--accent);flex:none}
+.task .tx{font-size:14px}
+.task .td{font-size:12px;color:var(--ink-2);margin-top:1px}
+.task.done .tx{text-decoration:line-through;color:var(--ink-3)}
+
+.swatches{display:flex;flex-wrap:wrap;gap:7px}
+.sw{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:5px 11px 5px 5px;font-size:12.5px;cursor:pointer}
+.sw i{width:19px;height:19px;border-radius:50%;border:1px solid var(--line-2);display:block;flex:none}
+.sw.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+
+svg.elev{display:block;width:100%;max-width:100%;height:auto}
+
+pre.out{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:12px;font-family:var(--f-mono);font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word;max-height:380px;overflow:auto;margin:0}
+
+/* ---- barra fija de resultado ---- */
+.sticky{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);border-top:1px solid var(--line);padding:9px 16px calc(9px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 20px rgba(0,0,0,.07)}
+.sticky-in{max-width:860px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.sticky .lb{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.sticky .big{font-family:var(--f-mono);font-size:17px;font-weight:600;letter-spacing:-.02em}
+.sticky .sep{width:1px;align-self:stretch;background:var(--line)}
+.empty{text-align:center;color:var(--ink-3);padding:26px 10px;font-size:14px}
+.fnative{display:block;width:100%;background:var(--surface-2);border:1.5px solid var(--accent);border-radius:9px;padding:12px;font-size:14px;color:var(--ink);cursor:pointer}
+.fnative::file-selector-button{font:inherit;background:var(--accent);color:var(--on-accent);border:0;border-radius:7px;padding:9px 13px;margin-right:11px;cursor:pointer}
+.ffile{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;opacity:0}
+.drop{border:1.5px dashed var(--line-2);border-radius:var(--r);padding:16px;text-align:center;color:var(--ink-3);font-size:13px;margin-top:10px}
+.pastebox{margin-top:8px;padding:11px;font-size:12.5px;cursor:pointer}
+.pastebox.arm{border-color:var(--accent);color:var(--accent)}
+.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent)}
+.impitem{display:flex;gap:11px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:7px;cursor:pointer}
+.impitem.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.impitem input{width:19px;height:19px;accent-color:var(--accent);flex:none}
+.impitem .nm{display:block;font-weight:600;font-size:14.5px}
+.impitem .mt{display:block;font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2)}
+.impitem .pr{margin-left:auto;font-family:var(--f-mono);font-weight:600;font-size:13px;flex:none}
+.logobox{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:11px}
+.logoprev{width:104px;height:66px;flex:none;border:1px dashed var(--line-2);border-radius:8px;display:grid;place-items:center;background:var(--surface);overflow:hidden;padding:5px}
+.logoprev.has{background:#FFFFFF;border-style:solid}
+.logoprev img{max-width:100%;max-height:56px;display:block}
+.logoprev span{font-size:10.5px;color:var(--ink-3);text-align:center;letter-spacing:.03em;padding:0 6px}
+.btn.sec.sm input[type=file]{position:absolute;width:0;height:0;opacity:0}
+.tag-ex{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);font-weight:600}
+@media (prefers-reduced-motion:no-preference){ .card,.hueco{transition:border-color .15s ease} }
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <span style="min-width:0">
+        <b id="obraName">Obra</b>
+        <span id="obraSub">—</span>
+      </span>
+    </div>
+    <div class="top-act">
+      <button class="iconbtn" id="btnTheme" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+      <button class="iconbtn" id="btnNew" title="Nuevo hueco" aria-label="Nuevo hueco">+</button>
     </div>
   </div>
+  <nav class="tabs" id="tabs" role="tablist"></nav>
+</header>
 
-  <script>
-    // --------- Helpers ----------
-    const $ = (id) => document.getElementById(id);
+<main id="view"></main>
 
-    const yesBtn = $("yesBtn");
-    const noBtn  = $("noBtn");
-    const result = $("result");
-    const buttons = $("buttons");
-    const blob = $("blob");
-    const streak = $("streak");
+<div class="sticky" id="sticky"></div>
 
-    let noTries = 0;
-    let lastMove = 0;
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num=v=>{const n=parseFloat(String(v).replace(",","."));return isFinite(n)?n:0;};
+const r0=v=>Math.round(v);
+const r1=v=>Math.round(v*10)/10;
+const r2=v=>Math.round(v*100)/100;
+function miles(v,n){ const neg=v<0; const p=Math.abs(isFinite(v)?v:0).toFixed(n).split("."); p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,"."); return (neg?"\u2212":"")+p.join(","); }
+const eur=v=>miles(v,2)+"\u00a0\u20ac";
+const d1=v=>miles(isFinite(v)?v:0,1);
+const d2=v=>miles(isFinite(v)?v:0,2);
+const qty=v=>(Math.abs(v-Math.round(v))<0.005?miles(Math.round(v),0):miles(v,2));
+const uid=()=>Math.random().toString(36).slice(2,9);
 
-    // Keep NO button inside card
-    function moveNoButton() {
-      const now = Date.now();
-      if (now - lastMove < 120) return; // throttle
-      lastMove = now;
+/* ============ CATÁLOGOS ============ */
+const TIPOS={
+  "fijo":            {n:"Fijo (sin apertura)",            hojas:0, fam:"fijo",      ap:"fijo",   horas:1.4},
+  "practicable-1":   {n:"Practicable 1 hoja",             hojas:1, fam:"practicable",ap:"prac",  horas:1.8},
+  "practicable-2":   {n:"Practicable 2 hojas",            hojas:2, fam:"practicable",ap:"prac",  horas:2.3},
+  "oscilo-1":        {n:"Oscilobatiente 1 hoja",          hojas:1, fam:"practicable",ap:"osc",   horas:2.0},
+  "oscilo-2":        {n:"Oscilobatiente 2 hojas",         hojas:2, fam:"practicable",ap:"osc",   horas:2.6},
+  "abatible":        {n:"Proyectante / abatible",         hojas:1, fam:"practicable",ap:"proy",  horas:1.8},
+  "corredera-2":     {n:"Corredera 2 hojas",              hojas:2, fam:"corredera", ap:"corr",  corr:true, horas:2.2},
+  "corredera-3":     {n:"Corredera 3 hojas",              hojas:3, fam:"corredera", ap:"corr",  corr:true, horas:2.8},
+  "corredera-4":     {n:"Corredera 4 hojas",              hojas:4, fam:"corredera", ap:"corr",  corr:true, horas:3.2},
+  "oscilopara-2":    {n:"Oscilo-paralela 2 hojas",        hojas:2, fam:"corredera", ap:"corr",  corr:true, horas:3.0},
+  "elevable-2":      {n:"Elevable 2 hojas",               hojas:2, fam:"corredera", ap:"corr",  corr:true, horas:4.0},
+  "balconera-2":     {n:"Balconera practicable 2 hojas",  hojas:2, fam:"practicable",ap:"prac", puerta:true, horas:2.6},
+  "puerta-entrada":  {n:"Puerta de entrada",              hojas:1, fam:"puerta",    ap:"prac",  puerta:true, horas:3.4},
+  "puerta-2":        {n:"Puerta 2 hojas",                 hojas:2, fam:"puerta",    ap:"prac",  puerta:true, horas:3.8},
+  "mampara-fija":    {n:"Mampara · panel fijo",           hojas:0, fam:"mampara",   ap:"fijo",  mampara:true, horas:1.6},
+  "mampara-corr-2":  {n:"Mampara · corredera 2 hojas",    hojas:2, fam:"mampara",   ap:"corr",  corr:true, mampara:true, horas:2.6},
+  "mampara-abat":    {n:"Mampara · fijo + abatible",      hojas:1, fam:"mampara",   ap:"prac",  mampara:true, horas:2.4},
+  "mampara-angulo":  {n:"Mampara · angular 2 lados",      hojas:2, fam:"mampara",   ap:"corr",  corr:true, mampara:true, horas:3.4}
+};
+const MATERIALES={
+  "pvc":     {n:"PVC",                  uf:1.3, kgm:1.9, desc:{fijo:48,practicable:58,corredera:52,puerta:62,mampara:0}},
+  "pvc-alu": {n:"PVC con cara aluminio",uf:1.4, kgm:2.3, desc:{fijo:50,practicable:60,corredera:54,puerta:64,mampara:0}},
+  "alu-rpt": {n:"Aluminio con RPT",     uf:2.2, kgm:1.3, desc:{fijo:40,practicable:50,corredera:46,puerta:54,mampara:0}},
+  "alu":     {n:"Aluminio sin RPT",     uf:5.7, kgm:1.1, desc:{fijo:38,practicable:46,corredera:42,puerta:50,mampara:0}},
+  "alu-mamp":{n:"Aluminio · perfilería mampara", uf:5.7, kgm:0.8, desc:{fijo:12,practicable:14,corredera:14,puerta:14,mampara:12}}
+};
+const VIDRIOS={
+  "4-16-4":      {n:"4 / 16 / 4 — estándar",                 mm:8,  ug:2.7, pm2:0,  cat:"ventana"},
+  "4be-16-4":    {n:"4 b.e. / 16 argón / 4 — térmico",       mm:8,  ug:1.3, pm2:14, cat:"ventana"},
+  "44-16-4be":   {n:"4+4 lam. / 16 argón / 4 b.e.",          mm:12, ug:1.4, pm2:32, cat:"ventana"},
+  "331-16-4be":  {n:"3+3 acústico / 16 / 4 b.e.",            mm:6,  ug:1.4, pm2:38, cat:"ventana"},
+  "44-16-44":    {n:"4+4 / 16 / 4+4 — acústico + seguridad", mm:16, ug:1.3, pm2:56, cat:"ventana"},
+  "6-20-6be":    {n:"6 / 20 / 6 b.e. — gran formato",        mm:12, ug:1.2, pm2:30, cat:"ventana"},
+  "ctrl-solar":  {n:"6 control solar / 16 / 4+4 b.e.",       mm:14, ug:1.1, pm2:62, cat:"ventana"},
+  "triple":      {n:"Triple 4/12/4/12/4 b.e.",               mm:12, ug:0.8, pm2:68, cat:"ventana"},
+  "panel-sand":  {n:"Panel sándwich 24 mm (ciego)",          mm:0,  ug:1.1, pm2:24, cat:"panel", panel:true},
+  "panel-comp":  {n:"Panel composite 20 mm (puerta)",        mm:0,  ug:1.4, pm2:40, cat:"panel", panel:true},
+  "templado-6":  {n:"Templado 6 mm — mampara",               mm:6,  ug:5.7, pm2:0,  cat:"mampara"},
+  "templado-8":  {n:"Templado 8 mm — mampara",               mm:8,  ug:5.7, pm2:18, cat:"mampara"},
+  "templado-10": {n:"Templado 10 mm — mampara",              mm:10, ug:5.7, pm2:34, cat:"mampara"}
+};
+const COLORES=[
+  {id:"blanco",   n:"Blanco 9016",            rec:0,    hex:"#F1F2EE"},
+  {id:"antracita",n:"Gris antracita 7016",    rec:.12,  hex:"#373D41"},
+  {id:"gris7038", n:"Gris ágata 7038",        rec:.12,  hex:"#B0B3AE"},
+  {id:"negro",    n:"Negro 9005 texturado",   rec:.14,  hex:"#1C1C1C"},
+  {id:"crema",    n:"Blanco crema 9001",      rec:.08,  hex:"#E8E0D1"},
+  {id:"anodizado",n:"Anodizado plata",        rec:.06,  hex:"#B7BBBE"},
+  {id:"roble",    n:"Foliado roble dorado",   rec:.12,  hex:"#A06E34"},
+  {id:"nogal",    n:"Foliado nogal",          rec:.12,  hex:"#5B3A22"},
+  {id:"gris-vent",n:"Foliado gris ventana",    rec:.12,  hex:"#6B7075"},
+  {id:"corten",   n:"Efecto óxido corten",    rec:.2,   hex:"#8B4A2C"},
+  {id:"ral",      n:"RAL especial a elegir",  rec:.16,  hex:"#5E7F8C"}
+];
+const CAJONES=[{c:165,max:1750},{c:185,max:2150},{c:205,max:2550},{c:225,max:2900},{c:250,max:3250},{c:300,max:4000}];
+const LAMAS={
+  "pvc-38":  {n:"PVC 38 mm",                 kgm2:4.0, aisl:"media"},
+  "alu-45":  {n:"Aluminio inyectado 45 mm",  kgm2:4.6, aisl:"alta"},
+  "alu-55":  {n:"Aluminio inyectado 55 mm",  kgm2:5.2, aisl:"alta"},
+  "alu-seg": {n:"Aluminio extrusionado (seguridad)", kgm2:9.5, aisl:"alta"},
+  "orient":  {n:"Lama orientable / graduable",kgm2:6.5, aisl:"alta"}
+};
+const MOTORES=[{nm:10,max:16},{nm:20,max:28},{nm:30,max:42},{nm:40,max:58},{nm:50,max:76},{nm:60,max:95}];
 
-      noTries++;
-      streak.textContent = `😈 x${noTries}`;
+const TARIFA_DEF={
+  m2min:1.2, hora:32, desplaz:45, retirada:60, descuento:0, iva:10, margen:35,
+  p:{ pvc:{fijo:155,practicable:245,corredera:205,puerta:330,mampara:240},
+      "pvc-alu":{fijo:195,practicable:295,corredera:255,puerta:385,mampara:270},
+      "alu-rpt":{fijo:190,practicable:300,corredera:250,puerta:400,mampara:260},
+      "alu":{fijo:125,practicable:195,corredera:160,puerta:280,mampara:220},
+      "alu-mamp":{fijo:210,practicable:265,corredera:280,puerta:300,mampara:265} },
+  persianaM2:78, motor:135, mando:45, mosquitera:62, vierteaguas:26, premarco:19, tapajuntas:9
+};
 
-      // Make it harder as tries increase
-      const cardRect = $("card").getBoundingClientRect();
-      const btnRect  = noBtn.getBoundingClientRect();
+/* ============ ESTADO ============ */
+const KEY="parte-hueco-v1";
+const EMPRESA_DEF={nombre:"",cif:"",dir:"",cp:"",ciudad:"",tel:"",email:"",web:"",
+  logo:null,sello:null,color:"#0D6E63",numero:"2026-001",validez:30,
+  plazo:"4 a 6 semanas desde la confirmación del pedido y toma de medidas definitiva.",
+  pago:"40 % a la firma del pedido y el resto a la finalización del montaje.",
+  garantia:"3 años en carpintería y herrajes, 2 años en la instalación.",
+  condiciones:"Las medidas definitivas se confirman en obra antes de pedir a fábrica. No se incluyen trabajos de albañilería, pintura ni retirada de elementos no previstos.",
+  detalle:false};
+function nuevoHueco(nombre){
+  return {id:uid(), nombre:nombre||"Hueco nuevo", estancia:"", planta:"Planta baja", ud:1,
+    tipologia:"oscilo-2", material:"pvc", serie:"70 mm · 5 cámaras",
+    instalacion:"obra", ancho:1200, alto:1350,
+    holLat:10, holSup:10, holInf:5, solLat:15, solSup:15, solInf:0,
+    montante:0,
+    descVidrio:58, autoDesc:true,
+    vidrio:"4be-16-4",
+    persiana:{on:true, sistema:"monoblock", descontar:true, cajon:185, lama:"alu-45",
+              accion:"motor", guias:35, solapeInf:60, mando:true},
+    modoPrecio:"tarifa", coste:0, origen:"",
+    color:{id:"blanco", bicolor:false, interior:"blanco"},
+    extras:{mosquitera:false, vierteaguas:true, premarco:false, tapajuntas:true,
+            manillaSeg:false, cierreSeg:false, limitador:false, barrotillo:false, remates:true},
+    tareas:{}, notas:""};
+}
+function seed(){
+  const a=nuevoHueco("Salón · ventana a terraza");
+  a.estancia="Salón"; a.tipologia="corredera-2"; a.ancho=1800; a.alto=2150; a.material="pvc";
+  a.vidrio="44-16-4be"; a.persiana.cajon=205; a.extras.mosquitera=true; a.ejemplo=true;
+  const b=nuevoHueco("Dormitorio 1 · ventana");
+  b.estancia="Dormitorio 1"; b.tipologia="oscilo-2"; b.ancho=1200; b.alto=1200; b.ejemplo=true;
+  const c=nuevoHueco("Baño · mampara de ducha");
+  c.estancia="Baño"; c.tipologia="mampara-corr-2"; c.material="alu-mamp"; c.serie="Perfil 20 mm regulable";
+  c.ancho=1200; c.alto=1950; c.instalacion="premarco"; c.holLat=8; c.holSup=5; c.holInf=0;
+  c.vidrio="templado-8"; c.persiana.on=false; c.extras.vierteaguas=false; c.extras.tapajuntas=false;
+  c.color.id="negro"; c.ejemplo=true;
+  return {empresa:JSON.parse(JSON.stringify(EMPRESA_DEF)),
+    obra:{nombre:"Reforma C/ Mayor 12, 3ºB", cliente:"Ejemplo — cámbialo por tu cliente",
+          tel:"", email:"", fecha:new Date().toISOString().slice(0,10), medidor:"", notas:""},
+    tarifa:JSON.parse(JSON.stringify(TARIFA_DEF)), huecos:[a,b,c], sel:a.id, tab:"empresa"};
+}
+let S;
+try{ const raw=localStorage.getItem(KEY); S=raw?JSON.parse(raw):seed(); }catch(e){ S=seed(); }
+if(!S||!S.huecos||!S.huecos.length) S=seed();
+S.tarifa=Object.assign(JSON.parse(JSON.stringify(TARIFA_DEF)),S.tarifa||{});
+S.empresa=Object.assign(JSON.parse(JSON.stringify(EMPRESA_DEF)),S.empresa||{});
+let SAVE_OK=true;
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); SAVE_OK=true; }catch(e){ SAVE_OK=false; } }
+try{ localStorage.setItem(KEY+"-test","1"); localStorage.removeItem(KEY+"-test"); }catch(e){ SAVE_OK=false; }
+const sel=()=>S.huecos.find(h=>h.id===S.sel)||S.huecos[0];
 
-      // available space inside card
-      const pad = 16;
-      const minX = cardRect.left + pad;
-      const maxX = cardRect.right - pad - btnRect.width;
-      const minY = cardRect.top + 210; // keep away from top title area
-      const maxY = cardRect.bottom - pad - btnRect.height;
+/* ============ CÁLCULO ============ */
+function descAuto(h){
+  const M=MATERIALES[h.material]||MATERIALES.pvc, T=TIPOS[h.tipologia];
+  return M.desc[T.fam]!==undefined?M.desc[T.fam]:50;
+}
+function calc(h){
+  const T=TIPOS[h.tipologia]||TIPOS["oscilo-2"], M=MATERIALES[h.material]||MATERIALES.pvc;
+  const V=VIDRIOS[h.vidrio]||VIDRIOS["4-16-4"];
+  const A=num(h.ancho), H=num(h.alto), ud=Math.max(1,num(h.ud)||1);
+  const reno=h.instalacion==="renovacion";
+  const anchoFab = reno ? A+2*num(h.solLat) : A-2*num(h.holLat);
+  const altoFab  = reno ? H+num(h.solSup)+num(h.solInf) : H-num(h.holSup)-num(h.holInf);
+  const pers=h.persiana||{};
+  const cajon = pers.on&&pers.sistema!=="exterior" ? num(pers.cajon) : 0;
+  const restaCajon = pers.on && pers.descontar && pers.sistema!=="exterior" ? cajon : 0;
+  const altoVent = altoFab - restaCajon;
+  const montante = Math.max(0,Math.min(num(h.montante), altoVent-300));
+  const altoHojaZona = altoVent - montante;
 
-      // Random position
-      const x = Math.max(minX, Math.min(maxX, minX + Math.random() * (maxX - minX)));
-      const y = Math.max(minY, Math.min(maxY, minY + Math.random() * (maxY - minY)));
+  const n = T.hojas||0;
+  let anchoHoja=0;
+  if(n>0) anchoHoja = T.corr ? (anchoFab + (n-1)*30)/n : anchoFab/n;
 
-      // Convert to relative using translate on fixed positioning
-      noBtn.style.position = "fixed";
-      noBtn.style.left = `${x}px`;
-      noBtn.style.top  = `${y}px`;
+  const d = h.autoDesc===false ? num(h.descVidrio) : descAuto(h);
+  const piezas=[];
+  if(n===0){ piezas.push({t:"Fijo", n:1, a:anchoFab-2*d, h:altoHojaZona-2*d}); }
+  else { piezas.push({t:T.corr?"Hoja corredera":"Hoja", n:n, a:anchoHoja-2*d, h:altoHojaZona-2*d}); }
+  if(montante>0) piezas.push({t:"Fijo superior", n:1, a:anchoFab-2*d, h:montante-2*d});
+  piezas.forEach(p=>{ p.a=Math.max(0,r0(p.a)); p.h=Math.max(0,r0(p.h)); p.m2=r2(p.a*p.h/1e6); });
 
-      // small wobble
-      noBtn.animate([
-        { transform: "rotate(0deg) scale(1)" },
-        { transform: "rotate(-4deg) scale(1.02)" },
-        { transform: "rotate(4deg) scale(1.02)" },
-        { transform: "rotate(0deg) scale(1)" }
-      ], { duration: 220, easing: "ease-out" });
+  const areaVid = piezas.reduce((s,p)=>s+p.n*p.a*p.h,0)/1e6;
+  const perimVid = piezas.reduce((s,p)=>s+p.n*2*(p.a+p.h),0)/1000;
+  const areaFab = anchoFab*altoFab/1e6;
+  const areaHueco = A*H/1e6;
+  const pesoVidM2 = V.panel? 11 : V.mm*2.5;
+  const pesoVidrio = areaVid*pesoVidM2;
 
-      // spawn a few hearts when they fail 😄
-      spawnHearts(3);
+  let pesoHoja=0, perimHoja=0;
+  if(n>0){
+    perimHoja = 2*(anchoHoja+altoHojaZona)/1000;
+    const pv = (anchoHoja-2*d)*(altoHojaZona-2*d)/1e6*pesoVidM2;
+    pesoHoja = pv + perimHoja*M.kgm;
+  }
+  const pesoTotal = pesoVidrio + (2*(anchoFab+altoFab)/1000)*M.kgm*1.15;
+
+  // Persiana
+  let P=null;
+  if(pers.on){
+    const lamaKey=pers.lama||"alu-45", L=LAMAS[lamaKey]||LAMAS["alu-45"];
+    const anchoLama = anchoFab - 2*num(pers.guias);
+    const altoLama  = altoVent + num(pers.solapeInf);
+    const m2 = Math.max(0,anchoLama*altoLama/1e6);
+    const peso = m2*L.kgm2;
+    const cajonMin = (CAJONES.find(c=>altoLama<=c.max)||CAJONES[CAJONES.length-1]).c;
+    const mot = MOTORES.find(m=>peso<=m.max)||MOTORES[MOTORES.length-1];
+    P={anchoLama:r0(anchoLama), altoLama:r0(altoLama), m2:r2(m2), peso:r1(peso),
+       lama:L.n, cajonMin, cajonOk:num(pers.cajon)>=cajonMin, nm:mot.nm,
+       guiaML:r2(2*altoLama/1000), eje:peso>35?"60 mm octogonal":"40 mm octogonal"};
+  }
+
+  // Térmico
+  const Ag=areaVid, At=Math.max(.01,areaFab), Af=Math.max(0,At-Ag);
+  const uw = (Ag*V.ug + Af*M.uf + perimVid*0.06)/At;
+
+  // Luz de paso
+  const perfilVisto = T.fam==="corredera"?70:(T.fam==="mampara"?22:62);
+  const pasoLibre = n>0 ? r0(T.corr ? anchoFab/n - perfilVisto : anchoFab - 2*perfilVisto - (n>1?perfilVisto:0)) : 0;
+  const altoPaso = r0(altoHojaZona - perfilVisto);
+
+  // Materiales de instalación
+  const perimML = 2*(anchoFab+altoFab)/1000;
+  const lados=[{l:anchoFab,c:2},{l:altoFab,c:2}];
+  let tornillos=0; lados.forEach(x=>{ tornillos += x.c*Math.max(2,Math.ceil(x.l/700)+1); });
+  const mats=[];
+  if(h.instalacion!=="premarco"||h.extras.premarco) mats.push({n:"Espuma PU baja expansión 750 ml",q:Math.ceil(perimML/9),u:"bote"});
+  mats.push({n:"Silicona neutra exterior (cartucho 300 ml)",q:Math.ceil(perimML*ud/8),u:"ud"});
+  mats.push({n:"Silicona acrílica / masilla interior",q:Math.ceil(perimML*ud/12),u:"ud"});
+  mats.push({n:"Tornillo marco 7,5×" + (h.instalacion==="renovacion"?"72":"92") + " mm + taco",q:tornillos*ud,u:"ud"});
+  mats.push({n:"Cuñas de nivelación / calzos PVC",q:10*ud,u:"ud"});
+  if(h.extras.tapajuntas) mats.push({n:"Tapajuntas a juego (ml)",q:r1((2*altoFab+anchoFab)/1000*ud),u:"ml"});
+  if(h.extras.vierteaguas) mats.push({n:"Vierteaguas aluminio (ml)",q:r1((anchoFab+120)/1000*ud),u:"ml"});
+  if(h.extras.premarco||h.instalacion==="premarco") mats.push({n:"Premarco acero/PVC (ml)",q:r1(perimML*ud),u:"ml"});
+  if(h.extras.remates) mats.push({n:"Banda de estanqueidad / membrana (ml)",q:r1(perimML*ud),u:"ml"});
+  if(P){
+    mats.push({n:"Guías de persiana (ml)",q:r1(P.guiaML*ud),u:"ml"});
+    mats.push({n:"Lama "+P.lama+" (m²)",q:r2(P.m2*ud),u:"m²"});
+    mats.push({n:"Eje "+P.eje,q:ud,u:"ud"});
+    if(pers.accion==="motor"){ mats.push({n:"Motor tubular "+P.nm+" Nm",q:ud,u:"ud"});
+      if(pers.mando) mats.push({n:"Mando / emisor vía radio",q:ud,u:"ud"}); }
+    else if(pers.accion==="cinta") mats.push({n:"Recogedor + cinta 22 mm (5 m)",q:ud,u:"ud"});
+    else mats.push({n:"Torno con cardan y manivela",q:ud,u:"ud"});
+  }
+  if(h.extras.mosquitera) mats.push({n:"Mosquitera "+(T.corr?"corredera":"enrollable"),q:ud,u:"ud"});
+  if(n>0) mats.push({n:"Manillas "+(h.extras.manillaSeg?"con llave":"estándar"),q:(T.corr?n:n)*ud,u:"ud"});
+
+  // Herraje
+  const bisagras = pesoHoja>100?4:(pesoHoja>60?3:2);
+  const puntosCierre = n>0 ? Math.max(2,Math.ceil(perimHoja*1000/700)) : 0;
+
+  // Horas
+  let horas = T.horas + areaFab*0.35;
+  if(h.instalacion==="renovacion") horas+=0.4; else horas+=0.8;
+  if(P) horas+= pers.accion==="motor"?1.4:0.9;
+  if(h.extras.mosquitera) horas+=0.3;
+  horas = r1(horas*ud);
+
+  // Precio
+  const t=S.tarifa, C=COLORES.find(c=>c.id===(h.color&&h.color.id))||COLORES[0];
+  const m2Fact = Math.max(areaFab, num(t.m2min));
+  const pBase = ((t.p[h.material]||t.p.pvc)[T.fam])||200;
+  let linea=[];
+  const porCoste = h.modoPrecio==="coste" && num(h.coste)>0;
+  const base = porCoste ? num(h.coste)*(1+num(t.margen)/100) : m2Fact*pBase;
+  linea.push({c:"Unidad "+T.n+" · "+M.n, v:base});
+  if(!porCoste){
+    const recColor = base*(C.rec + (h.color&&h.color.bicolor?0.06:0));
+    if(recColor>0) linea.push({c:"Acabado: "+C.n+(h.color.bicolor?" (bicolor)":""), v:recColor});
+    const vidExtra = areaVid*V.pm2;
+    if(vidExtra>0) linea.push({c:"Vidrio "+V.n, v:vidExtra});
+    if(P){ const persPrecio = P.m2*t.persianaM2 + (pers.accion==="motor"? num(t.motor)+(pers.mando?num(t.mando):0):0);
+      linea.push({c:"Persiana "+P.lama+(pers.accion==="motor"?" motorizada":""), v:persPrecio}); }
+    if(h.extras.mosquitera){ const v=Math.max(1,areaFab)*t.mosquitera; linea.push({c:"Mosquitera",v:v}); }
+    if(h.extras.vierteaguas){ const v=(anchoFab+120)/1000*t.vierteaguas; linea.push({c:"Vierteaguas",v:v}); }
+    if(h.extras.premarco||h.instalacion==="premarco"){ const v=perimML*t.premarco; linea.push({c:"Premarco",v:v}); }
+    if(h.extras.tapajuntas){ const v=(2*altoFab+anchoFab)/1000*t.tapajuntas; linea.push({c:"Tapajuntas",v:v}); }
+    if(h.extras.cierreSeg) linea.push({c:"Herraje antipalanca / seguridad", v:68});
+    if(h.extras.limitador) linea.push({c:"Limitador de apertura", v:24*(n||1)});
+    if(h.extras.barrotillo) linea.push({c:"Barrotillo interior (cuadrícula)", v:areaVid*42});
+  }
+  const materialTot = linea.reduce((s,l)=>s+l.v,0)*ud;
+  const manoObra = horas*num(t.hora);
+  const totalHueco = materialTot + manoObra;
+
+  // Avisos
+  const av=[];
+  if(A<=0||H<=0) av.push({t:"d",x:"Faltan las medidas del hueco."});
+  if(anchoFab<=0||altoVent<=0) av.push({t:"d",x:"Los descuentos dejan la medida de fabricación en cero o negativa. Revisa holguras y cajón."});
+  if(h.instalacion==="renovacion") av.push({t:"i",x:"Renovación: la medida de fabricación incluye el solape sobre el marco viejo. Comprueba que el marco antiguo está a plomo y bien anclado antes de tomarla."});
+  if(n>0 && anchoHoja>1000 && T.ap!=="corr") av.push({t:"w",x:"Hoja de "+r0(anchoHoja)+" mm: por encima de 1.000 mm conviene bisagra reforzada o repartir en más hojas."});
+  if(n>0 && altoHojaZona>2400) av.push({t:"w",x:"Hoja de "+r0(altoHojaZona)+" mm de alto: revisa el máximo del herraje de tu serie."});
+  if(T.ap==="osc" && (anchoHoja<380||altoHojaZona<480)) av.push({t:"w",x:"Hoja pequeña para oscilobatiente: el herraje suele pedir mínimo 380×480 mm."});
+  if(pesoHoja>80) av.push({t:"w",x:"Hoja de "+r0(pesoHoja)+" kg: herraje reforzado y montaje entre dos personas."});
+  if(pesoHoja>130) av.push({t:"d",x:"Más de 130 kg por hoja: fuera del herraje estándar, consulta a fábrica."});
+  const mayorM2 = Math.max.apply(null,piezas.map(p=>p.m2).concat([0]));
+  if(mayorM2>2.5) av.push({t:"w",x:"Vidrio de "+d2(mayorM2)+" m²: ventosas y dos operarios."});
+  if(mayorM2>4) av.push({t:"d",x:"Vidrio por encima de 4 m²: prevé medios de elevación o grúa de cristalero."});
+  if(P && !P.cajonOk) av.push({t:"d",x:"El cajón de "+num(pers.cajon)+" mm no recoge "+P.altoLama+" mm de lama. Necesitas al menos "+P.cajonMin+" mm."});
+  if(P && P.cajonOk && num(pers.cajon)>P.cajonMin+60) av.push({t:"i",x:"Con un cajón de "+P.cajonMin+" mm bastaría; ganarías "+(num(pers.cajon)-P.cajonMin)+" mm de luz de vidrio."});
+  if(V.cat==="mampara" && !T.mampara) av.push({t:"w",x:"Has elegido vidrio templado de mampara en una tipología de ventana."});
+  if(V.cat==="ventana" && T.mampara) av.push({t:"w",x:"Una mampara se monta con vidrio templado de 6, 8 o 10 mm."});
+  if(h.material==="alu" && V.cat!=="mampara") av.push({t:"w",x:"Aluminio sin rotura de puente térmico: Uw alto y condensaciones en invierno."});
+  if(uw>2.2 && V.cat!=="mampara") av.push({t:"w",x:"Uw estimado "+d2(uw)+" W/m²K. El CTE pide valores más bajos en casi toda España; revisa vidrio y perfil."});
+  if(uw<=1.6 && V.cat!=="mampara") av.push({t:"o",x:"Uw estimado "+d2(uw)+" W/m²K: buen conjunto para rehabilitación."});
+  if(T.puerta && pasoLibre<700 && pasoLibre>0) av.push({t:"w",x:"Paso libre de "+pasoLibre+" mm: por debajo de 700 mm complica accesibilidad y mudanzas."});
+  if(T.mampara) av.push({t:"i",x:"Mampara: deja regulación en los perfiles murales y empieza a sellar desde dentro del plato, dejando el cordón exterior continuo."});
+  if(h.instalacion==="obra" && !h.extras.premarco) av.push({t:"i",x:"Montaje a hueco sin premarco: calza, aploma y ancla antes de espumar; la espuma no sujeta, solo aísla."});
+
+  return {T,M,V,C,ud,A,H,anchoFab:r0(anchoFab),altoFab:r0(altoFab),altoVent:r0(altoVent),
+    cajon,restaCajon,montante,anchoHoja:r0(anchoHoja),altoHoja:r0(altoHojaZona),nHojas:n,
+    d,piezas,areaVid:r2(areaVid),areaFab:r2(areaFab),areaHueco:r2(areaHueco),
+    pesoVidrio:r1(pesoVidrio),pesoHoja:r1(pesoHoja),pesoTotal:r1(pesoTotal),
+    P,uw:r2(uw),pasoLibre,altoPaso,mats,bisagras,puntosCierre,horas,
+    linea,materialTot,manoObra,totalHueco,m2Fact:r2(m2Fact),pBase,av,perimML:r2(perimML),
+    porCoste,costeProv:porCoste?num(h.coste)*ud:0,margenEur:porCoste?(base-num(h.coste))*ud:0};
+}
+function totalObra(){
+  const t=S.tarifa;
+  let mat=0,mo=0,coste=0;
+  S.huecos.forEach(h=>{const c=calc(h);mat+=c.materialTot;mo+=c.manoObra;coste+=c.costeProv;});
+  const extras=num(t.desplaz)+num(t.retirada);
+  const bruto=mat+mo+extras;
+  const dto=bruto*num(t.descuento)/100;
+  const base=bruto-dto;
+  const iva=base*num(t.iva)/100;
+  return {mat,mo,extras,bruto,dto,base,iva,total:base+iva,coste,margen:base-coste};
+}
+
+/* ============ DIBUJO ============ */
+function elevacion(h,c){
+  const W=320, pad=34;
+  const A=Math.max(1,c.anchoFab), H=Math.max(1,c.altoFab);
+  const k=Math.min((W-pad*2)/A, 230/H);
+  const w=A*k, hh=H*k, x0=pad, y0=18;
+  const g=[];
+  const cl={fr:"var(--ink-2)",gl:"color-mix(in srgb, var(--blue) 16%, transparent)",ln:"var(--ink-3)"};
+  g.push(`<rect x="${x0}" y="${y0}" width="${w}" height="${hh}" fill="var(--surface-2)" stroke="var(--ink-2)" stroke-width="2"/>`);
+  let yT=y0;
+  if(c.P && c.restaCajon>0){
+    const ch=c.cajon*k;
+    g.push(`<rect x="${x0}" y="${y0}" width="${w}" height="${ch}" fill="color-mix(in srgb, var(--accent) 14%, transparent)" stroke="var(--ink-2)" stroke-width="1.5"/>`);
+    for(let i=1;i<4;i++) g.push(`<line x1="${x0+4}" y1="${y0+ch*i/4}" x2="${x0+w-4}" y2="${y0+ch*i/4}" stroke="var(--ink-3)" stroke-width=".7" opacity=".7"/>`);
+    g.push(`<text x="${x0+w/2}" y="${y0+ch/2+3.5}" text-anchor="middle" font-size="9" font-family="IBM Plex Mono, monospace" fill="var(--ink-2)">CAJÓN ${c.cajon}</text>`);
+    yT=y0+ch;
+  }
+  const hV=(c.altoVent)*k;
+  let yH=yT;
+  if(c.montante>0){
+    const mh=c.montante*k;
+    g.push(`<rect x="${x0+3}" y="${yT+3}" width="${w-6}" height="${mh-3}" fill="${cl.gl}" stroke="var(--ink-2)" stroke-width="1.2"/>`);
+    yH=yT+mh;
+  }
+  const hz=(yT+hV)-yH;
+  const n=c.nHojas;
+  if(n===0){
+    g.push(`<rect x="${x0+5}" y="${yH+5}" width="${w-10}" height="${hz-10}" fill="${cl.gl}" stroke="var(--ink-2)" stroke-width="1.2"/>`);
+    g.push(`<text x="${x0+w/2}" y="${yH+hz/2+4}" text-anchor="middle" font-size="10" font-family="IBM Plex Mono, monospace" fill="var(--ink-2)">FIJO</text>`);
+  } else {
+    const hw=w/n;
+    for(let i=0;i<n;i++){
+      const hx=x0+i*hw;
+      g.push(`<rect x="${hx+4}" y="${yH+4}" width="${hw-8}" height="${hz-8}" fill="${cl.gl}" stroke="var(--ink-2)" stroke-width="1.2"/>`);
+      const ax=hx+7, ay=yH+7, aw=hw-14, ah=hz-14;
+      if(c.T.ap==="prac"||c.T.ap==="osc"){
+        const izq = (i%2===0);
+        if(izq) g.push(`<path d="M ${ax} ${ay} L ${ax+aw} ${ay+ah/2} L ${ax} ${ay+ah}" fill="none" stroke="${cl.ln}" stroke-width="1" stroke-dasharray="3 2.5"/>`);
+        else    g.push(`<path d="M ${ax+aw} ${ay} L ${ax} ${ay+ah/2} L ${ax+aw} ${ay+ah}" fill="none" stroke="${cl.ln}" stroke-width="1" stroke-dasharray="3 2.5"/>`);
+        if(c.T.ap==="osc"&&i===0) g.push(`<path d="M ${ax} ${ay+ah} L ${ax+aw/2} ${ay} L ${ax+aw} ${ay+ah}" fill="none" stroke="${cl.ln}" stroke-width="1" stroke-dasharray="3 2.5"/>`);
+      } else if(c.T.ap==="proy"){
+        g.push(`<path d="M ${ax} ${ay+ah} L ${ax+aw/2} ${ay} L ${ax+aw} ${ay+ah}" fill="none" stroke="${cl.ln}" stroke-width="1" stroke-dasharray="3 2.5"/>`);
+      } else if(c.T.ap==="corr"){
+        const my=yH+hz/2, dir=i%2===0?1:-1;
+        const sx=hx+hw/2-18*dir, ex=hx+hw/2+18*dir;
+        g.push(`<line x1="${sx}" y1="${my}" x2="${ex}" y2="${my}" stroke="${cl.ln}" stroke-width="1.4"/>`);
+        g.push(`<path d="M ${ex} ${my} l ${-7*dir} -4 M ${ex} ${my} l ${-7*dir} 4" fill="none" stroke="${cl.ln}" stroke-width="1.4"/>`);
+      }
+      if(i>0) g.push(`<line x1="${hx}" y1="${yH}" x2="${hx}" y2="${yH+hz}" stroke="var(--ink-2)" stroke-width="1.2"/>`);
     }
+  }
+  // cotas
+  const yd=y0+hh+16;
+  g.push(`<line x1="${x0}" y1="${yd}" x2="${x0+w}" y2="${yd}" stroke="var(--ink-3)" stroke-width="1"/>`);
+  g.push(`<line x1="${x0}" y1="${yd-4}" x2="${x0}" y2="${yd+4}" stroke="var(--ink-3)" stroke-width="1"/>`);
+  g.push(`<line x1="${x0+w}" y1="${yd-4}" x2="${x0+w}" y2="${yd+4}" stroke="var(--ink-3)" stroke-width="1"/>`);
+  g.push(`<text x="${x0+w/2}" y="${yd-5}" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="var(--ink)">${c.anchoFab}</text>`);
+  const xd=x0-14;
+  g.push(`<line x1="${xd}" y1="${y0}" x2="${xd}" y2="${y0+hh}" stroke="var(--ink-3)" stroke-width="1"/>`);
+  g.push(`<line x1="${xd-4}" y1="${y0}" x2="${xd+4}" y2="${y0}" stroke="var(--ink-3)" stroke-width="1"/>`);
+  g.push(`<line x1="${xd-4}" y1="${y0+hh}" x2="${xd+4}" y2="${y0+hh}" stroke="var(--ink-3)" stroke-width="1"/>`);
+  g.push(`<text x="${xd-4}" y="${y0+hh/2}" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="var(--ink)" transform="rotate(-90 ${xd-4} ${y0+hh/2})">${c.altoFab}</text>`);
+  g.push(`<text x="${x0+w+8}" y="${y0+12}" font-size="9" font-family="IBM Plex Mono, monospace" fill="var(--ink-3)">EXT</text>`);
+  return `<svg class="elev" viewBox="0 0 ${W+30} ${y0+hh+28}" role="img" aria-label="Alzado del hueco visto desde el interior">${g.join("")}</svg>`;
+}
 
-    function spawnHearts(n = 8) {
-      const emojis = ["💗","💖","💕","💘","💞"];
-      for (let i = 0; i < n; i++) {
-        const h = document.createElement("div");
-        h.className = "heart";
-        h.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-        const x = Math.random() * 100;
-        const dur = 2200 + Math.random() * 1800;
-        const drift = (Math.random() * 120 - 60).toFixed(0) + "px";
-
-        h.style.setProperty("--x", x + "vw");
-        h.style.setProperty("--dur", dur + "ms");
-        h.style.setProperty("--drift", drift);
-
-        document.body.appendChild(h);
-        setTimeout(() => h.remove(), dur + 200);
+/* ============ LECTOR DE PDF DEL PROVEEDOR ============ */
+/* Extractor de texto de PDF, sin librerías. Devuelve el texto por páginas respetando líneas y columnas. */
+const PDFTexto=(function(){
+const W1252={128:8364,130:8218,131:402,132:8222,133:8230,134:8224,135:8225,136:710,137:8240,138:352,139:8249,140:338,142:381,145:8216,146:8217,147:8220,148:8221,149:8226,150:8211,151:8212,152:732,153:8482,154:353,155:8250,156:339,158:382,159:376};
+const AW=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+function anchoTxt(t,size){ let w=0; for(const ch of String(t)){ const c=ch.codePointAt(0);
+  w += (c>=32&&c<=126)?AW[c-32]:(c===160?278:(c>=192?556:500)); } return w*size/1000; }
+function lat1(u8){ let s="",CH=32768; for(let i=0;i<u8.length;i+=CH) s+=String.fromCharCode.apply(null,u8.subarray(i,Math.min(i+CH,u8.length))); return s; }
+async function inflate(b){
+  for(const fmt of ["deflate","deflate-raw"]){
+    try{
+      const st=new Blob([b]).stream().pipeThrough(new DecompressionStream(fmt));
+      const r=new Uint8Array(await new Response(st).arrayBuffer());
+      if(r.length) return r;
+    }catch(e){}
+  }
+  return null;
+}
+function unpredict(d,parms){
+  const pred=parseInt((/\/Predictor\s+(\d+)/.exec(parms)||[])[1]||1,10);
+  if(pred<2) return d;
+  const cols=parseInt((/\/Columns\s+(\d+)/.exec(parms)||[])[1]||1,10);
+  const colors=parseInt((/\/Colors\s+(\d+)/.exec(parms)||[])[1]||1,10);
+  const bpc=parseInt((/\/BitsPerComponent\s+(\d+)/.exec(parms)||[])[1]||8,10);
+  const bpp=Math.max(1,Math.ceil(colors*bpc/8)), rw=Math.ceil(colors*bpc*cols/8);
+  const rows=Math.floor(d.length/(rw+1)), out=new Uint8Array(rows*rw);
+  let prev=new Uint8Array(rw);
+  for(let r=0;r<rows;r++){
+    const ft=d[r*(rw+1)], cur=d.subarray(r*(rw+1)+1,r*(rw+1)+1+rw), line=new Uint8Array(rw);
+    for(let i=0;i<rw;i++){
+      const a=i>=bpp?line[i-bpp]:0, bb=prev[i], c=i>=bpp?prev[i-bpp]:0; let v=cur[i];
+      if(ft===1) v+=a; else if(ft===2) v+=bb; else if(ft===3) v+=((a+bb)>>1);
+      else if(ft===4){ const p=a+bb-c, pa=Math.abs(p-a), pb=Math.abs(p-bb), pc=Math.abs(p-c);
+        v+= (pa<=pb&&pa<=pc)?a:(pb<=pc?bb:c); }
+      line[i]=v&255;
+    }
+    out.set(line,r*rw); prev=line;
+  }
+  return out;
+}
+function dictOf(s,i){ // dict en bruto desde "<<" equilibrando
+  let d=0,j=i;
+  while(j<s.length){
+    if(s[j]==="<"&&s[j+1]==="<"){ d++; j+=2; continue; }
+    if(s[j]===">"&&s[j+1]===">"){ d--; j+=2; if(!d) return s.slice(i,j); continue; }
+    j++;
+  }
+  return s.slice(i,Math.min(s.length,i+4000));
+}
+async function leerObjetos(u8){
+  const s=lat1(u8), objs={};
+  const re=/(\d+)\s+(\d+)\s+obj\b/g; let m;
+  const starts=[];
+  while((m=re.exec(s))) starts.push({num:+m[1],at:m.index,end:re.lastIndex});
+  for(let k=0;k<starts.length;k++){
+    const o=starts[k], lim = k+1<starts.length?starts[k+1].at:s.length;
+    const di=s.indexOf("<<",o.end);
+    let dict = (di>=0 && di<lim) ? dictOf(s,di) : s.slice(o.end,Math.min(lim,o.end+400));
+    const si=s.indexOf("stream",o.end);
+    let raw=null;
+    if(si>=0 && si<lim){
+      let p=si+6;
+      if(s[p]==="\r") p++;
+      if(s[p]==="\n") p++;
+      let len=-1;
+      const lm=/\/Length\s+(\d+)(?!\s+\d+\s+R)/.exec(dict);
+      if(lm) len=+lm[1];
+      let fin;
+      if(len>=0 && s.slice(p+len,p+len+20).indexOf("endstream")>=0) fin=p+len;
+      else { fin=s.indexOf("endstream",p); if(fin<0||fin>lim) fin=Math.min(lim,s.length);
+             while(fin>p&&(s[fin-1]==="\n"||s[fin-1]==="\r")) fin--; }
+      raw=u8.subarray(p,fin);
+    }
+    objs[o.num]={dict:dict,raw:raw};
+  }
+  return objs;
+}
+function a85(b){
+  const out=[]; let tup=0,cnt=0;
+  for(let i=0;i<b.length;i++){
+    const c=b[i];
+    if(c===126) break;                 // ~>
+    if(c<=32) continue;
+    if(c===122&&cnt===0){ out.push(0,0,0,0); continue; }  // z
+    if(c<33||c>117) continue;
+    tup=tup*85+(c-33); cnt++;
+    if(cnt===5){ out.push((tup>>>24)&255,(tup>>>16)&255,(tup>>>8)&255,tup&255); tup=0; cnt=0; }
+  }
+  if(cnt>0){ for(let i=cnt;i<5;i++) tup=tup*85+84;
+    const by=[(tup>>>24)&255,(tup>>>16)&255,(tup>>>8)&255,tup&255];
+    for(let i=0;i<cnt-1;i++) out.push(by[i]); }
+  return new Uint8Array(out);
+}
+function aHex(b){
+  const out=[]; let hi=-1;
+  for(let i=0;i<b.length;i++){
+    const c=b[i]; if(c===62) break;
+    let v=-1;
+    if(c>=48&&c<=57) v=c-48; else if(c>=97&&c<=102) v=c-87; else if(c>=65&&c<=70) v=c-55; else continue;
+    if(hi<0) hi=v; else { out.push(hi*16+v); hi=-1; }
+  }
+  if(hi>=0) out.push(hi*16);
+  return new Uint8Array(out);
+}
+async function datos(o){
+  if(!o||!o.raw) return null;
+  if(o._d!==undefined) return o._d;
+  let d=o.raw;
+  const fm=/\/Filter\s*(\[[^\]]*\]|\/[A-Za-z0-9]+)/.exec(o.dict);
+  const filtros=fm?(fm[1].match(/\/[A-Za-z0-9]+/g)||[]).map(x=>x.slice(1)):[];
+  for(const f of filtros){
+    if(!d) break;
+    if(f==="FlateDecode"){
+      d=await inflate(d);
+      if(d && /\/Predictor/.test(o.dict)){
+        const pm=/\/DecodeParms\s*(<<[\s\S]*?>>)/.exec(o.dict);
+        if(pm) d=unpredict(d,pm[1]);
       }
     }
-
-    function showResult() {
-      buttons.style.display = "none";
-      result.style.display = "block";
-      $("qTitle").textContent = "Confirmado:";
-      $("qSub").textContent = "Eres oficialmente mi persona favorita 🫶";
-      $("emoji").textContent = "💞";
-      spawnHearts(14);
+    else if(f==="ASCII85Decode") d=a85(d);
+    else if(f==="ASCIIHexDecode") d=aHex(d);
+    else if(f==="Crypt") {}
+    else { d=null; }   // LZW, DCT, JBIG2: no aplican a texto
+  }
+  o._d=d;
+  return d;
+}
+async function expandir(objs){
+  for(const k of Object.keys(objs)){
+    const o=objs[k];
+    if(!/\/Type\s*\/ObjStm/.test(o.dict)) continue;
+    const d=await datos(o); if(!d) continue;
+    const txt=lat1(d);
+    const N=+((/\/N\s+(\d+)/.exec(o.dict)||[])[1]||0), First=+((/\/First\s+(\d+)/.exec(o.dict)||[])[1]||0);
+    const head=txt.slice(0,First).trim().split(/\s+/).map(Number);
+    for(let i=0;i<N;i++){
+      const num=head[i*2], off=head[i*2+1];
+      if(!isFinite(num)||!isFinite(off)) continue;
+      const nxt = (i+1<N)? First+head[i*2+3] : txt.length;
+      const body=txt.slice(First+off,nxt);
+      if(objs[num]&&objs[num].raw) continue;
+      const di=body.indexOf("<<");
+      objs[num]={dict: di>=0?dictOf(body,di):body, raw:null};
     }
-
-    // --------- Events ----------
-    yesBtn.addEventListener("click", showResult);
-
-    // Desktop hover & mobile "touchstart" triggers escape
-    noBtn.addEventListener("mouseenter", moveNoButton);
-    noBtn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      moveNoButton();
-    }, { passive:false });
-
-    // If they actually click NO (rare), still troll:
-    noBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      moveNoButton();
-      if (noTries >= 6) {
-        // after enough tries, "convert" them
-        showResult();
+  }
+}
+function ref(x){ const m=/^\s*(\d+)\s+\d+\s+R/.exec(x); return m?+m[1]:null; }
+function campo(dict,nombre){
+  const re=new RegExp("\\/"+nombre+"\\s*(<<|\\[|\\/[^\\s\\/\\]>]+|\\d+\\s+\\d+\\s+R|-?[\\d.]+)");
+  const m=re.exec(dict); if(!m) return null;
+  if(m[1]==="<<") return dictOf(dict,m.index+m[0].length-2);
+  if(m[1]==="[") { const i=dict.indexOf("[",m.index); let d=0,j=i;
+    while(j<dict.length){ if(dict[j]==="[")d++; else if(dict[j]==="]"){d--; if(!d) return dict.slice(i,j+1);} j++; }
+    return dict.slice(i); }
+  return m[1];
+}
+async function dictDe(objs,v){
+  if(!v) return null;
+  const r=ref(v);
+  if(r!=null) return objs[r]?objs[r].dict:null;
+  return v;
+}
+function cmapDe(txt){
+  const map={};
+  let re=/beginbfchar([\s\S]*?)endbfchar/g,m;
+  while((m=re.exec(txt))){
+    const t=m[1], rr=/<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>/g; let x;
+    while((x=rr.exec(t))) map[parseInt(x[1],16)]=hexAStr(x[2]);
+  }
+  re=/beginbfrange([\s\S]*?)endbfrange/g;
+  while((m=re.exec(re.lastIndex!==undefined?txt:txt))){
+    const t=m[1];
+    const r1=/<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>/g; let x;
+    while((x=r1.exec(t))){
+      const lo=parseInt(x[1],16), hi=parseInt(x[2],16), base=parseInt(x[3],16);
+      for(let c=lo;c<=hi&&c-lo<65535;c++) map[c]=String.fromCodePoint(base+(c-lo));
+    }
+    const r2=/<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*\[([\s\S]*?)\]/g;
+    while((x=r2.exec(t))){
+      const lo=parseInt(x[1],16); const items=x[3].match(/<([0-9A-Fa-f]+)>/g)||[];
+      items.forEach((it,i)=>{ map[lo+i]=hexAStr(it.replace(/[<>]/g,"")); });
+    }
+  }
+  return map;
+}
+function hexAStr(h){
+  let s="";
+  for(let i=0;i+3<h.length+1;i+=4){ const c=parseInt(h.substr(i,4),16); if(isFinite(c)) s+=String.fromCharCode(c); }
+  return s||String.fromCharCode(parseInt(h,16)||32);
+}
+function cp(c){ return W1252[c]!==undefined?String.fromCharCode(W1252[c]):String.fromCharCode(c); }
+function leerCadena(s,i){ // i apunta a "("
+  let out=[],d=1,j=i+1;
+  while(j<s.length){
+    const ch=s[j];
+    if(ch==="\\"){
+      const n=s[j+1];
+      if(n>="0"&&n<="7"){ let o=""; let k=j+1; while(k<j+4&&s[k]>="0"&&s[k]<="7"){o+=s[k];k++;} out.push(parseInt(o,8)); j=k; continue; }
+      const map={n:10,r:13,t:9,b:8,f:12};
+      if(map[n]!==undefined) out.push(map[n]); else if(n==="\n"){} else out.push(n.charCodeAt(0));
+      j+=2; continue;
+    }
+    if(ch==="("){ d++; out.push(40); j++; continue; }
+    if(ch===")"){ d--; if(!d) return {bytes:out,end:j+1}; out.push(41); j++; continue; }
+    out.push(ch.charCodeAt(0)); j++;
+  }
+  return {bytes:out,end:j};
+}
+function decodifica(bytes,fuente){
+  const f=fuente||{};
+  let out="";
+  if(f.dos){
+    for(let i=0;i+1<bytes.length;i+=2){ const c=(bytes[i]<<8)|bytes[i+1];
+      out += f.map&&f.map[c]!==undefined?f.map[c]:(c>=32&&c<65535?String.fromCharCode(c):""); }
+  } else {
+    for(let i=0;i<bytes.length;i++){ const c=bytes[i];
+      out += f.map&&f.map[c]!==undefined?f.map[c]:cp(c); }
+  }
+  return out;
+}
+function textoDeStream(txt,fuentes){
+  const items=[];
+  let font=null, tm=[1,0,0,1,0,0], tlm=[1,0,0,1,0,0], leading=0, size=1;
+  let ctm=[1,0,0,1,0,0]; const gs=[];
+  const stack=[];
+  function tr(a,b){ return [a[0]*b[0]+a[1]*b[2], a[0]*b[1]+a[1]*b[3], a[2]*b[0]+a[3]*b[2], a[2]*b[1]+a[3]*b[3], a[4]*b[0]+a[5]*b[2]+b[4], a[4]*b[1]+a[5]*b[3]+b[5]]; }
+  let i=0;
+  const n=txt.length;
+  function pushOp(v){ stack.push(v); if(stack.length>80) stack.shift(); }
+  while(i<n){
+    const ch=txt[i];
+    if(ch==="("){ const r=leerCadena(txt,i); pushOp({s:r.bytes}); i=r.end; continue; }
+    if(ch==="<"&&txt[i+1]!=="<"){ const e=txt.indexOf(">",i); const h=txt.slice(i+1,e<0?i+1:e).replace(/[^0-9A-Fa-f]/g,"");
+      const by=[]; for(let k=0;k+1<h.length;k+=2) by.push(parseInt(h.substr(k,2),16));
+      if(h.length%2) by.push(parseInt(h.slice(-1)+"0",16));
+      pushOp({s:by}); i=(e<0?n:e+1); continue; }
+    if(ch==="["){ // array TJ
+      let d=0,j=i; const parts=[];
+      while(j<n){ if(txt[j]==="["){d++;j++;continue;} if(txt[j]==="]"){d--;j++; if(!d)break; continue;}
+        if(txt[j]==="("){ const r=leerCadena(txt,j); parts.push({s:r.bytes}); j=r.end; continue; }
+        if(txt[j]==="<"){ const e=txt.indexOf(">",j); const h=txt.slice(j+1,e<0?j+1:e).replace(/[^0-9A-Fa-f]/g,"");
+          const by=[]; for(let k=0;k+1<h.length;k+=2) by.push(parseInt(h.substr(k,2),16));
+          parts.push({s:by}); j=(e<0?n:e+1); continue; }
+        const nm=/^-?[\d.]+/.exec(txt.slice(j,j+20));
+        if(nm){ parts.push({n:parseFloat(nm[0])}); j+=nm[0].length; continue; }
+        j++; }
+      pushOp({arr:parts}); i=j; continue; }
+    if(ch==="%"){ const e=txt.indexOf("\n",i); i=e<0?n:e+1; continue; }
+    const num=/^-?[\d.]+/.exec(txt.slice(i,i+24));
+    if(num && /[\d.-]/.test(ch)){ pushOp({n:parseFloat(num[0])}); i+=num[0].length; continue; }
+    if(ch==="/"){ const m=/^\/[^\s\/\[\]<>()]*/.exec(txt.slice(i,i+80)); pushOp({name:m?m[0].slice(1):""}); i+=m?m[0].length:1; continue; }
+    const op=/^[A-Za-z'"*]+/.exec(txt.slice(i,i+8));
+    if(!op){ i++; continue; }
+    const o=op[0]; i+=o.length;
+    const last=k=>stack[stack.length-k];
+    if(o==="Tf"){ const f=last(2); size=(last(1)&&last(1).n)||1; if(f&&f.name!==undefined) font=fuentes[f.name]||null; }
+    else if(o==="Tm"){ const v=stack.slice(-6).map(x=>x&&x.n||0); tm=v.slice(); tlm=v.slice(); }
+    else if(o==="Td"){ const ty=(last(1)&&last(1).n)||0, tx=(last(2)&&last(2).n)||0;
+      tlm=tr([1,0,0,1,tx,ty],tlm); tm=tlm.slice(); }
+    else if(o==="TD"){ const ty=(last(1)&&last(1).n)||0, tx=(last(2)&&last(2).n)||0;
+      leading=-ty; tlm=tr([1,0,0,1,tx,ty],tlm); tm=tlm.slice(); }
+    else if(o==="TL"){ leading=(last(1)&&last(1).n)||0; }
+    else if(o==="T*"){ tlm=tr([1,0,0,1,0,-leading],tlm); tm=tlm.slice(); }
+    else if(o==="BT"){ tm=[1,0,0,1,0,0]; tlm=tm.slice(); }
+    else if(o==="q"){ gs.push(ctm.slice()); }
+    else if(o==="Q"){ if(gs.length) ctm=gs.pop(); }
+    else if(o==="cm"){ const v=stack.slice(-6).map(x=>x&&x.n||0); if(v.length===6) ctm=tr(v,ctm); }
+    else if(o==="Tj"||o==="'"||o==="\""){
+      if(o!=="Tj"){ tlm=tr([1,0,0,1,0,-leading],tlm); tm=tlm.slice(); }
+      const st=last(1);
+      if(st&&st.s){ const p=tr(tm,ctm); items.push({x:p[4],y:p[5],t:decodifica(st.s,font),s:size*Math.abs(p[3])||size}); }
+    }
+    else if(o==="TJ"){
+      const a=last(1);
+      if(a&&a.arr){ let s=""; a.arr.forEach(p=>{ if(p.s) s+=decodifica(p.s,font); else if(p.n<-120) s+=" "; });
+        const p=tr(tm,ctm); items.push({x:p[4],y:p[5],t:s,s:size*Math.abs(p[3])||size}); }
+    }
+    if(/^(Tj|TJ|Tf|Tm|Td|TD|TL|T\*|'|"|BT|ET|Q|q|cm|re|n|f|S|W|g|rg|RG|G|gs|Do|BDC|EMC|BMC|sc|scn|SC|SCN|k|K|w|J|j|M|d|i|ri|cs|CS|m|l|c|v|y|h|B|b|F|s|Tc|Tw|Tz|Ts|Tr|BI|ID|EI|sh|d0|d1)$/.test(o)) stack.length=0;
+  }
+  return items;
+}
+function componer(items){
+  if(!items.length) return "";
+  const vis=items.filter(it=>it.t&&it.t.trim());
+  vis.sort((a,b)=> Math.abs(a.y-b.y)>2.2 ? b.y-a.y : a.x-b.x);
+  const lineas=[]; let act=null;
+  vis.forEach(it=>{
+    if(!act||Math.abs(it.y-act.y)>2.2){ act={y:it.y,parts:[it]}; lineas.push(act); }
+    else act.parts.push(it);
+  });
+  return lineas.map(l=>{
+    l.parts.sort((a,b)=>a.x-b.x);
+    let s="", prev=null;
+    l.parts.forEach(p=>{
+      if(prev){
+        const sz=prev.s||9;
+        const hueco=p.x-(prev.x+anchoTxt(prev.t,sz));
+        if(hueco>sz*1.7) s+="   ";
+        else if(hueco>sz*0.18 && !/\s$/.test(s) && !/^\s/.test(p.t)) s+=" ";
       }
+      s+=p.t; prev=p;
     });
-
-    // Subtle animated hearts occasionally
-    setInterval(() => {
-      if (result.style.display === "block") return;
-      spawnHearts(1);
-    }, 1800);
-
-    // WhatsApp share (works best once hosted with a URL)
-    $("shareBtn").addEventListener("click", async () => {
-      const url = location.href;
-      const text = "Mira esto 😏 ¿Me quieres? 💗";
-      try{
-        if (navigator.share) {
-          await navigator.share({ title: "¿Me quieres?", text, url });
-        } else {
-          // fallback: open WhatsApp share link
-          window.open(`https://wa.me/?text=${encodeURIComponent(text + " " + url)}`, "_blank");
+    return s.replace(/\s+$/,"");
+  }).filter(l=>l.trim()).join("\n");
+}
+async function extraer(buf,maxPags){
+  const u8=buf instanceof Uint8Array?buf:new Uint8Array(buf);
+  if(lat1(u8.subarray(0,1024)).indexOf("%PDF")<0) throw new Error("no-pdf");
+  if(/\/Encrypt\b/.test(lat1(u8.subarray(Math.max(0,u8.length-3000))))) throw new Error("cifrado");
+  const objs=await leerObjetos(u8);
+  await expandir(objs);
+  const pags=Object.keys(objs).filter(k=>/\/Type\s*\/Page(?![s])/.test(objs[k].dict));
+  const out=[];
+  const lim=Math.min(pags.length,maxPags||12);
+  for(let i=0;i<lim;i++){
+    const pg=objs[pags[i]];
+    // fuentes
+    const fuentes={};
+    let resv=campo(pg.dict,"Resources");
+    let res=await dictDe(objs,resv);
+    if(!res){ // heredar del padre
+      const par=ref(campo(pg.dict,"Parent")||"");
+      if(par!=null&&objs[par]) res=await dictDe(objs,campo(objs[par].dict,"Resources"));
+    }
+    if(res){
+      const fd=await dictDe(objs,campo(res,"Font"));
+      if(fd){
+        const rf=/\/([^\s\/<>\[\]]+)\s+(\d+)\s+\d+\s+R/g; let m;
+        while((m=rf.exec(fd))){
+          const fo=objs[+m[2]]; if(!fo) continue;
+          const dos=/\/Subtype\s*\/Type0/.test(fo.dict)||/Identity-H/.test(fo.dict);
+          let map=null;
+          const tu=ref(campo(fo.dict,"ToUnicode")||"");
+          if(tu!=null&&objs[tu]){ const d=await datos(objs[tu]); if(d) map=cmapDe(lat1(d)); }
+          fuentes[m[1]]={dos:dos,map:map};
         }
-      }catch(err){
-        // ignore if cancelled
       }
-    });
+    }
+    // contenidos
+    let cont=campo(pg.dict,"Contents")||"";
+    const nums=[];
+    if(cont.indexOf("[")===0){ const rr=/(\d+)\s+\d+\s+R/g; let m; while((m=rr.exec(cont))) nums.push(+m[1]); }
+    else { const r=ref(cont); if(r!=null) nums.push(r); }
+    let txt="";
+    for(const nn of nums){ const d=await datos(objs[nn]); if(d) txt+=lat1(d)+"\n"; }
+    if(!txt) continue;
+    out.push(componer(textoDeStream(txt,fuentes)));
+  }
+  return {paginas:out, total:pags.length};
+}
+return {extraer:extraer};
+})();
 
-    // Initial hearts
-    spawnHearts(5);
-  </script>
+/* ============ MOTOR DE PDF (sin librerías externas) ============ */
+const PDF=(function(){
+const WR=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+const WB=[278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584];
+const ACC={225:97,233:101,237:105,243:111,250:117,241:110,252:117,239:105,235:101,224:97,232:101,236:105,242:111,249:117,231:99,193:65,201:69,205:73,211:79,218:85,209:78,220:85,199:67,186:111,170:97,183:46,215:120,191:63,161:33,8211:45,8212:45,8216:39,8217:39,8220:34,8221:34,8226:46,171:60,187:62};
+const EXTRA={176:400,178:345,179:345,185:345,8364:556,160:278,8211:556,8212:1000,
+  8216:222,8217:222,8220:333,8221:333,8226:350,171:556,187:556,191:611,161:333,170:370,186:365,169:737,174:737};
+function cw(c,b){
+  if(c>=32&&c<=126) return (b?WB:WR)[c-32];
+  if(EXTRA[c]!==undefined) return EXTRA[c];
+  if(ACC[c]!==undefined) return (b?WB:WR)[ACC[c]-32];
+  return b?611:556;
+}
+function tw(s,size,b){ let w=0; for(const ch of String(s)) w+=cw(ch.codePointAt(0),b); return w*size/1000; }
+const CP={8364:128,8218:130,402:131,8222:132,8230:133,8224:134,8225:135,710:136,8240:137,352:138,8249:139,338:140,381:142,8216:145,8217:146,8220:147,8221:148,8226:149,8211:150,8212:151,732:152,8482:153,353:154,8250:155,339:156,382:158,376:159};
+function pstr(s){
+  let o="(";
+  for(const ch of String(s)){
+    let c=ch.codePointAt(0);
+    if(CP[c]!==undefined) c=CP[c];
+    if(c>255) c=63;
+    if(c===40||c===41||c===92) o+="\\"+String.fromCharCode(c);
+    else if(c<32||c>126) o+="\\"+("00"+c.toString(8)).slice(-3);
+    else o+=String.fromCharCode(c);
+  }
+  return o+")";
+}
+function bts(str){ const a=new Uint8Array(str.length); for(let i=0;i<str.length;i++) a[i]=str.charCodeAt(i)&255; return a; }
+function Doc(o){
+  o=o||{};
+  this.W=595.28; this.H=841.89;
+  this.ml=o.ml||42; this.mr=o.mr||42; this.mt=o.mt||40; this.mb=o.mb||54;
+  this.R=this.W-this.mr; this.CW=this.W-this.ml-this.mr;
+  this.pages=[]; this.imgs=[]; this.imap={}; this.c=null; this.y=0; this.onPage=o.onPage||null;
+  this.newPage();
+}
+Doc.prototype.newPage=function(){ this.c=[]; this.pages.push(this.c); this.y=this.H-this.mt; if(this.onPage) this.onPage(this,this.pages.length); };
+Doc.prototype.need=function(h){ if(this.y-h<this.mb){ this.newPage(); return true; } return false; };
+Doc.prototype.rgb=function(h){ const n=parseInt(String(h).slice(1),16); return [((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255]; };
+Doc.prototype.fill=function(h){ this.c.push(this.rgb(h).map(v=>v.toFixed(3)).join(" ")+" rg"); };
+Doc.prototype.strk=function(h){ this.c.push(this.rgb(h).map(v=>v.toFixed(3)).join(" ")+" RG"); };
+Doc.prototype.raw=function(s,x,y,size,b){ this.c.push("BT /"+(b?"F2":"F1")+" "+size.toFixed(2)+" Tf 1 0 0 1 "+x.toFixed(2)+" "+y.toFixed(2)+" Tm "+pstr(s)+" Tj ET"); };
+Doc.prototype.text=function(s,x,y,o){
+  o=o||{}; const size=o.size||9.5, b=!!o.bold; s=String(s);
+  const w=tw(s,size,b);
+  let xx=x;
+  if(o.align==="right") xx=x-w; else if(o.align==="center") xx=x-w/2;
+  this.fill(o.color||"#1A1F1E");
+  if(s.indexOf("²")<0&&s.indexOf("³")<0){ this.raw(s,xx,y,size,b); return w; }
+  let run="",cur=xx;
+  for(const ch of s){
+    if(ch==="²"||ch==="³"){
+      if(run){ this.raw(run,cur,y,size,b); cur+=tw(run,size,b); run=""; }
+      this.raw(ch==="²"?"2":"3",cur,y+size*0.33,size*0.62,b);
+      cur+=cw(ch.codePointAt(0),b)*size/1000;
+    } else run+=ch;
+  }
+  if(run) this.raw(run,cur,y,size,b);
+  return w;
+};
+Doc.prototype.wrap=function(s,size,b,max){
+  const words=String(s).split(/\s+/),out=[]; let line="";
+  words.forEach(w=>{ const t=line?line+" "+w:w;
+    if(tw(t,size,b)<=max) line=t;
+    else { if(line) out.push(line);
+      if(tw(w,size,b)>max){ let cur=""; for(const ch of w){ if(tw(cur+ch,size,b)>max){ out.push(cur); cur=ch; } else cur+=ch; } line=cur; }
+      else line=w; } });
+  if(line) out.push(line);
+  return out.length?out:[""];
+};
+Doc.prototype.para=function(s,x,y,max,o){
+  o=o||{}; const size=o.size||9, lh=o.lh||size*1.32;
+  const ls=this.wrap(s,size,!!o.bold,max);
+  ls.forEach((l,i)=>this.text(l,x,y-i*lh,o));
+  return ls.length*lh;
+};
+Doc.prototype.rect=function(x,y,w,h,col){ this.fill(col); this.c.push(x.toFixed(2)+" "+y.toFixed(2)+" "+w.toFixed(2)+" "+h.toFixed(2)+" re f"); };
+Doc.prototype.frame=function(x,y,w,h,col,lw){ this.strk(col); this.c.push((lw||.6)+" w "+x.toFixed(2)+" "+y.toFixed(2)+" "+w.toFixed(2)+" "+h.toFixed(2)+" re S"); };
+Doc.prototype.line=function(x1,y1,x2,y2,col,lw){ this.strk(col); this.c.push((lw||.6)+" w "+x1.toFixed(2)+" "+y1.toFixed(2)+" m "+x2.toFixed(2)+" "+y2.toFixed(2)+" l S"); };
+Doc.prototype.dash=function(x1,y1,x2,y2,col,lw){ this.strk(col); this.c.push("[2.5 2] 0 d "+(lw||.6)+" w "+x1.toFixed(2)+" "+y1.toFixed(2)+" m "+x2.toFixed(2)+" "+y2.toFixed(2)+" l S [] 0 d"); };
+Doc.prototype.image=function(key,jpeg,w,h,x,y,dw,dh){
+  let id=this.imap[key];
+  if(!id){ this.imgs.push({data:jpeg,w:w,h:h}); id=this.imgs.length; this.imap[key]=id; }
+  this.c.push("q "+dw.toFixed(2)+" 0 0 "+dh.toFixed(2)+" "+x.toFixed(2)+" "+y.toFixed(2)+" cm /Im"+id+" Do Q");
+};
+Doc.prototype.eachPage=function(fn){ const s=this.c; this.pages.forEach((p,i)=>{ this.c=p; fn(this,i+1,this.pages.length); }); this.c=s; };
+Doc.prototype.build=function(){
+  const nImg=this.imgs.length, imgBase=5, pageBase=imgBase+nImg;
+  const kids=[]; for(let i=0;i<this.pages.length;i++) kids.push((pageBase+i*2)+" 0 R");
+  const xo=this.imgs.map((im,i)=>"/Im"+(i+1)+" "+(imgBase+i)+" 0 R");
+  const res="<< /Font << /F1 3 0 R /F2 4 0 R >>"+(nImg?" /XObject << "+xo.join(" ")+" >>":"")+" >>";
+  const bodies=[];
+  bodies[1]="<< /Type /Catalog /Pages 2 0 R >>";
+  bodies[2]="<< /Type /Pages /Count "+this.pages.length+" /Kids ["+kids.join(" ")+"] >>";
+  bodies[3]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
+  bodies[4]="<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
+  this.imgs.forEach((im,i)=>{ bodies[imgBase+i]={img:im}; });
+  for(let i=0;i<this.pages.length;i++){
+    const pn=pageBase+i*2, cn=pn+1;
+    bodies[pn]="<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+this.W.toFixed(2)+" "+this.H.toFixed(2)+"] /Resources "+res+" /Contents "+cn+" 0 R >>";
+    bodies[cn]={stream:this.pages[i].join("\n")};
+  }
+  const total=pageBase+this.pages.length*2-1;
+  const parts=[]; let off=0; const offs=[];
+  function push(x){ const b=(typeof x==="string")?bts(x):x; parts.push(b); off+=b.length; }
+  push("%PDF-1.4\n%âãÏÓ\n");
+  for(let n=1;n<=total;n++){
+    offs[n]=off; const b=bodies[n];
+    if(typeof b==="string") push(n+" 0 obj\n"+b+"\nendobj\n");
+    else if(b.stream!==undefined){ const s=b.stream;
+      push(n+" 0 obj\n<< /Length "+s.length+" >>\nstream\n"); push(s); push("\nendstream\nendobj\n"); }
+    else { const im=b.img;
+      push(n+" 0 obj\n<< /Type /XObject /Subtype /Image /Width "+im.w+" /Height "+im.h+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+im.data.length+" >>\nstream\n");
+      push(im.data); push("\nendstream\nendobj\n"); }
+  }
+  const xref=off;
+  let x="xref\n0 "+(total+1)+"\n0000000000 65535 f \n";
+  for(let n=1;n<=total;n++) x+=("0000000000"+offs[n]).slice(-10)+" 00000 n \n";
+  push(x);
+  push("trailer\n<< /Size "+(total+1)+" /Root 1 0 R >>\nstartxref\n"+xref+"\n%%EOF\n");
+  let len=0; parts.forEach(p=>len+=p.length);
+  const out=new Uint8Array(len); let p=0;
+  parts.forEach(b=>{ out.set(b,p); p+=b.length; });
+  return out;
+};
+return {Doc:Doc,tw:tw};
+})();
+
+function dataURLBytes(u){
+  const b64=String(u).split(",")[1]||"";
+  const bin=atob(b64), a=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i);
+  return a;
+}
+function fechaES(iso){ if(!iso) return ""; const p=String(iso).split("-"); return p.length===3?p[2]+"/"+p[1]+"/"+p[0]:iso; }
+
+/* ---- documentos ---- */
+function colAcc(){ return (S.empresa&&S.empresa.color)||"#0D6E63"; }
+const INK="#1A1F1E", MUT="#5A635F", LN="#CBD2CD", SOFT="#F0F2F0";
+
+function pdfLogo(d,slot,x,yTop,maxW,maxH){
+  const L=S.empresa&&S.empresa[slot];
+  if(!L||!L.data) return 0;
+  const k=Math.min(maxW/L.w,maxH/L.h), dw=L.w*k, dh=L.h*k;
+  d.image(slot,dataURLBytes(L.data),L.w,L.h,x,yTop-dh,dw,dh);
+  return dh;
+}
+function pdfCabecera(d,titulo,sub){
+  const E=S.empresa, top=d.H-d.mt, AC=colAcc();
+  let lh=pdfLogo(d,"logo",d.ml,top,150,52);
+  if(!lh) d.text(E.nombre||"Tu empresa",d.ml,top-16,{size:15,bold:true,color:AC});
+  d.text(titulo,d.R,top-14,{size:17,bold:true,color:AC,align:"right"});
+  if(sub) d.text(sub,d.R,top-28,{size:9,color:MUT,align:"right"});
+  const y=top-58;
+  d.rect(d.ml,y,d.CW,1.8,AC);
+  return y-16;
+}
+function pdfPieDePagina(d){
+  const E=S.empresa;
+  d.eachPage(function(dd,n,N){
+    dd.line(dd.ml,44,dd.R,44,LN,.5);
+    const izq=[E.nombre,E.cif].filter(Boolean).join(" · ");
+    dd.text(izq||" ",dd.ml,34,{size:7.5,color:MUT});
+    dd.text("Página "+n+" de "+N,dd.R,34,{size:7.5,color:MUT,align:"right"});
+  });
+}
+function pdfBloqueDatos(d,y){
+  const E=S.empresa, O=S.obra, mid=d.ml+d.CW/2+10, cw=d.CW/2-10;
+  d.text("EMITE",d.ml,y,{size:7.5,bold:true,color:MUT});
+  d.text("PARA",mid,y,{size:7.5,bold:true,color:MUT});
+  let y1=y-13, y2=y-13;
+  d.text(E.nombre||"—",d.ml,y1,{size:10.5,bold:true}); y1-=12;
+  [E.cif,E.dir,[E.cp,E.ciudad].filter(Boolean).join(" "),E.tel,E.email,E.web].filter(Boolean)
+    .forEach(l=>{ d.text(l,d.ml,y1,{size:8.5,color:MUT}); y1-=10.5; });
+  d.text(O.cliente||"—",mid,y2,{size:10.5,bold:true}); y2-=12;
+  [O.tel,O.email].filter(Boolean).forEach(l=>{ d.text(l,mid,y2,{size:8.5,color:MUT}); y2-=10.5; });
+  y2-=3;
+  d.text("OBRA",mid,y2,{size:7.5,bold:true,color:MUT}); y2-=11;
+  y2-=d.para(O.nombre||"—",mid,y2,cw,{size:8.5,color:MUT});
+  return Math.min(y1,y2)-8;
+}
+function lineasHueco(h,c){
+  const L=[], p=h.persiana;
+  L.push(c.T.n+" · "+c.M.n+(h.serie?" · serie "+h.serie:""));
+  L.push("Acabado "+c.C.n+(h.color.bicolor?" / interior "+((COLORES.find(x=>x.id===h.color.interior)||c.C).n):""));
+  L.push("Hueco "+c.A+" × "+c.H+" mm · fabricación "+c.anchoFab+" × "+c.altoFab+" mm · "+d2(c.areaFab)+" m²");
+  L.push("Vidrio "+c.V.n+(c.T.mampara?"":" · Uw estimado "+d2(c.uw)+" W/m²K"));
+  if(c.P) L.push("Persiana "+c.P.lama+", cajón "+num(p.cajon)+" mm, "+({cinta:"con cinta y recogedor",torno:"con torno",motor:"motorizada "+c.P.nm+" Nm"}[p.accion])+(p.accion==="motor"&&p.mando?" y mando":""));
+  const ex=Object.keys(h.extras).filter(k=>h.extras[k]).map(k=>({mosquitera:"mosquitera",vierteaguas:"vierteaguas",premarco:"premarco",tapajuntas:"tapajuntas",manillaSeg:"manilla con llave",cierreSeg:"herraje antipalanca",limitador:"limitador de apertura",barrotillo:"barrotillo",remates:"remates y sellado"}[k]||k));
+  if(ex.length) L.push("Incluye "+ex.join(", "));
+  L.push("Instalación "+({obra:"a hueco de obra",premarco:"sobre premarco",renovacion:"en renovación, con solape sobre el marco existente"}[h.instalacion])+", retirada del material antiguo y limpieza");
+  if(h.notas) L.push(h.notas);
+  return L;
+}
+function pdfPresupuesto(){
+  const E=S.empresa, O=S.obra, T=totalObra(), AC=colAcc();
+  const d=new PDF.Doc({onPage:function(dd,n){ if(n>1){ dd.text((E.nombre||"Presupuesto")+" · presupuesto "+(E.numero||""),dd.ml,dd.H-dd.mt-8,{size:8,color:MUT});
+    dd.rect(dd.ml,dd.H-dd.mt-20,dd.CW,1,LN); dd.y=dd.H-dd.mt-38; } }});
+  let y=pdfCabecera(d,"PRESUPUESTO",(E.numero?"Nº "+E.numero+" · ":"")+fechaES(O.fecha)+(num(E.validez)?" · validez "+num(E.validez)+" días":""));
+  y=pdfBloqueDatos(d,y);
+  d.line(d.ml,y,d.R,y,LN,.7); y-=14;
+  d.text("DESCRIPCIÓN",d.ml,y,{size:7.5,bold:true,color:MUT});
+  d.text("UDS",430,y,{size:7.5,bold:true,color:MUT,align:"right"});
+  d.text("IMPORTE",d.R,y,{size:7.5,bold:true,color:MUT,align:"right"});
+  y-=6; d.line(d.ml,y,d.R,y,LN,.7); y-=16;
+  d.y=y;
+  S.huecos.forEach((h,i)=>{
+    const c=calc(h), ls=lineasHueco(h,c);
+    d.need(40+ls.length*11);
+    let yy=d.y;
+    d.text(String(i+1).padStart(2,"0"),d.ml,yy,{size:9.5,bold:true,color:AC});
+    d.text(h.nombre,d.ml+24,yy,{size:10.5,bold:true});
+    d.text("×"+c.ud,430,yy,{size:9.5,align:"right",color:MUT});
+    d.text(eur(c.totalHueco),d.R,yy,{size:10.5,bold:true,align:"right"});
+    yy-=13;
+    ls.forEach(l=>{ yy-=d.para(l,d.ml+24,yy,350,{size:8.3,color:MUT,lh:10.6}); });
+    if(E.detalle){
+      yy-=2;
+      c.linea.forEach(l=>{ d.text(l.c,d.ml+24,yy,{size:7.8,color:MUT});
+        d.text(eur(l.v),d.R,yy,{size:7.8,color:MUT,align:"right"}); yy-=9.6; });
+      d.text("Mano de obra · "+d1(c.horas)+" h",d.ml+24,yy,{size:7.8,color:MUT});
+      d.text(eur(c.manoObra),d.R,yy,{size:7.8,color:MUT,align:"right"}); yy-=9.6;
+    }
+    yy-=6; d.line(d.ml,yy,d.R,yy,LN,.4); d.y=yy-14;
+  });
+  // totales
+  const filas=[["Material y suministro",T.mat],["Mano de obra",T.mo],["Desplazamiento y retirada",T.extras]];
+  if(T.dto>0) filas.push(["Descuento "+num(S.tarifa.descuento)+" %",-T.dto]);
+  filas.push(["Base imponible",T.base],["IVA "+num(S.tarifa.iva)+" %",T.iva]);
+  d.need(filas.length*14+54);
+  let ty=d.y, bx=d.ml+d.CW*0.45, bw=d.CW*0.55;
+  filas.forEach(f=>{ d.text(f[0],bx+10,ty,{size:9,color:MUT}); d.text(eur(f[1]),d.R-10,ty,{size:9,align:"right"}); ty-=14; });
+  ty-=4;
+  d.rect(bx,ty-20,bw,28,AC);
+  d.text("TOTAL",bx+10,ty-12,{size:12,bold:true,color:"#FFFFFF"});
+  d.text(eur(T.total),d.R-10,ty-12,{size:13,bold:true,color:"#FFFFFF",align:"right"});
+  d.y=ty-40;
+  // condiciones
+  const cond=[];
+  if(num(E.validez)) cond.push("Validez de la oferta: "+num(E.validez)+" días desde la fecha.");
+  if(E.plazo) cond.push("Plazo de entrega: "+E.plazo);
+  if(E.pago) cond.push("Forma de pago: "+E.pago);
+  if(E.garantia) cond.push("Garantía: "+E.garantia);
+  if(E.condiciones) cond.push(E.condiciones);
+  if(cond.length){
+    d.need(30+cond.length*22);
+    let cy=d.y;
+    d.text("CONDICIONES",d.ml,cy,{size:7.5,bold:true,color:MUT}); cy-=13;
+    cond.forEach(t=>{ cy-=d.para(t,d.ml,cy,d.CW,{size:8.3,color:MUT,lh:10.6})+3; });
+    d.y=cy-10;
+  }
+  // firmas
+  d.need(96);
+  let fy=d.y, half=(d.CW-20)/2;
+  d.frame(d.ml,fy-66,half,66,LN,.7);
+  d.frame(d.ml+half+20,fy-66,half,66,LN,.7);
+  d.text("Por la empresa",d.ml+8,fy-13,{size:8,bold:true,color:MUT});
+  d.text("Conforme el cliente",d.ml+half+28,fy-13,{size:8,bold:true,color:MUT});
+  pdfLogo(d,"sello",d.ml+8,fy-24,half-16,34);
+  d.line(d.ml+half+28,fy-54,d.ml+2*half+4,fy-54,LN,.5);
+  d.text("Fecha y firma",d.ml+half+28,fy-62,{size:7,color:MUT});
+  pdfPieDePagina(d);
+  return d.build();
+}
+function elevPDF(d,x0,yTop,maxW,maxH,c){
+  const A=Math.max(1,c.anchoFab), H=Math.max(1,c.altoFab);
+  const k=Math.min(maxW/A,maxH/H), w=A*k, h=H*k;
+  const x=x0+(maxW-w)/2, yb=yTop-h;
+  d.rect(x,yb,w,h,SOFT);
+  d.frame(x,yb,w,h,"#5A635F",1.1);
+  let yTopInner=yTop;
+  if(c.P&&c.restaCajon>0){
+    const ch=c.cajon*k;
+    d.rect(x,yTop-ch,w,ch,"#E3EDEA");
+    d.frame(x,yTop-ch,w,ch,"#5A635F",.7);
+    d.text("CAJÓN "+c.cajon,x+w/2,yTop-ch/2-3,{size:6,color:MUT,align:"center"});
+    yTopInner=yTop-ch;
+  }
+  let yh=yTopInner;
+  if(c.montante>0){ const mh=c.montante*k;
+    d.frame(x+2.5,yTopInner-mh,w-5,mh-2,"#5A635F",.7); yh=yTopInner-mh; }
+  const hz=yh-yb, n=c.nHojas;
+  if(n===0){ d.frame(x+4,yb+4,w-8,hz-8,"#5A635F",.7); }
+  else{
+    const hw=w/n;
+    for(let i=0;i<n;i++){
+      const hx=x+i*hw;
+      d.frame(hx+3,yb+3,hw-6,hz-6,"#5A635F",.7);
+      const ax=hx+6, ay=yb+6, aw=hw-12, ah=hz-12;
+      if(c.T.ap==="prac"||c.T.ap==="osc"){
+        if(i%2===0){ d.dash(ax,ay+ah,ax+aw,ay+ah/2,"#7C8781",.6); d.dash(ax+aw,ay+ah/2,ax,ay,"#7C8781",.6); }
+        else { d.dash(ax+aw,ay+ah,ax,ay+ah/2,"#7C8781",.6); d.dash(ax,ay+ah/2,ax+aw,ay,"#7C8781",.6); }
+        if(c.T.ap==="osc"&&i===0){ d.dash(ax,ay,ax+aw/2,ay+ah,"#7C8781",.6); d.dash(ax+aw/2,ay+ah,ax+aw,ay,"#7C8781",.6); }
+      } else if(c.T.ap==="proy"){ d.dash(ax,ay,ax+aw/2,ay+ah,"#7C8781",.6); d.dash(ax+aw/2,ay+ah,ax+aw,ay,"#7C8781",.6); }
+      else if(c.T.ap==="corr"){ const my=yb+hz/2, dir=i%2===0?1:-1, sx=hx+hw/2-10*dir, ex=hx+hw/2+10*dir;
+        d.line(sx,my,ex,my,"#7C8781",.8); d.line(ex,my,ex-4*dir,my-2.5,"#7C8781",.8); d.line(ex,my,ex-4*dir,my+2.5,"#7C8781",.8); }
+      if(i>0) d.line(hx,yb,hx,yh,"#5A635F",.7);
+    }
+  }
+  d.line(x,yb-9,x+w,yb-9,"#7C8781",.5);
+  d.line(x,yb-12,x,yb-6,"#7C8781",.5); d.line(x+w,yb-12,x+w,yb-6,"#7C8781",.5);
+  d.text(String(c.anchoFab),x+w/2,yb-19,{size:7,align:"center",color:MUT});
+  d.text(String(c.altoFab),x-6,yb+h/2,{size:7,align:"right",color:MUT});
+  return h+26;
+}
+function pdfTaller(){
+  const E=S.empresa, O=S.obra, AC=colAcc();
+  const d=new PDF.Doc({onPage:function(dd,n){ if(n>1){ dd.text("Hoja de taller · "+(O.nombre||""),dd.ml,dd.H-dd.mt-8,{size:8,color:MUT});
+    dd.rect(dd.ml,dd.H-dd.mt-20,dd.CW,1,LN); dd.y=dd.H-dd.mt-38; } }});
+  let y=pdfCabecera(d,"HOJA DE TALLER",fechaES(O.fecha)+(O.medidor?" · midió "+O.medidor:""));
+  d.text("OBRA",d.ml,y,{size:7.5,bold:true,color:MUT});
+  y-=13; y-=d.para(O.nombre||"—",d.ml,y,d.CW,{size:10,bold:true});
+  d.text((O.cliente||"")+(O.tel?" · "+O.tel:""),d.ml,y,{size:8.5,color:MUT});
+  d.y=y-16;
+  S.huecos.forEach((h,i)=>{
+    const c=calc(h), p=h.persiana;
+    d.need(190);
+    const yt=d.y;
+    d.rect(d.ml,yt-14,d.CW,18,SOFT);
+    d.text(String(i+1).padStart(2,"0")+"  "+h.nombre+(c.ud>1?"   ×"+c.ud+" uds":""),d.ml+8,yt-9,{size:10,bold:true});
+    d.text(c.T.n,d.R-8,yt-9,{size:8.5,color:MUT,align:"right"});
+    let yy=yt-26;
+    const dibAlto=elevPDF(d,d.ml+4,yy,150,135,c);
+    const cx=d.ml+170, cw2=d.R-cx;
+    const datos=[
+      ["Fabricación",c.anchoFab+" × "+c.altoFab+" mm"],
+      ["Marco de ventana",c.anchoFab+" × "+c.altoVent+" mm"+(c.restaCajon?" (cajón "+c.cajon+" descontado)":"")],
+      c.nHojas?["Hoja",c.anchoHoja+" × "+c.altoHoja+" mm · "+c.nHojas+" hojas"]:null,
+      ["Material",c.M.n+(h.serie?" · "+h.serie:"")],
+      ["Color",c.C.n+(h.color.bicolor?" / int. "+((COLORES.find(x=>x.id===h.color.interior)||c.C).n):"")],
+      ["Vidrio",c.V.n],
+      ["Instalación",({obra:"a hueco de obra",premarco:"sobre premarco",renovacion:"renovación con solape"}[h.instalacion])],
+      ["Peso / herraje",d1(c.pesoTotal)+" kg"+(c.nHojas&&!c.T.corr?" · "+c.bisagras+" bisagras":"")+(c.puntosCierre?" · "+c.puntosCierre+" puntos de cierre":"")]
+    ].filter(Boolean);
+    let dy=yy;
+    datos.forEach(r=>{ d.text(r[0],cx,dy,{size:7.3,bold:true,color:MUT});
+      const u=d.para(r[1],cx+92,dy,cw2-92,{size:8.5,lh:10}); dy-=Math.max(12,u); });
+    c.piezas.forEach(pz=>{ d.text("Despiece",cx,dy,{size:7.3,bold:true,color:MUT});
+      d.text(pz.n*c.ud+" ud   "+pz.a+" × "+pz.h+" mm   ("+pz.t+")",cx+92,dy,{size:8.5}); dy-=12; });
+    if(c.P){ d.text("Persiana",cx,dy,{size:7.3,bold:true,color:MUT});
+      dy-=d.para("Lama "+c.P.anchoLama+" × "+c.P.altoLama+" mm · "+c.P.lama+" · cajón "+num(p.cajon)+" mm (mín. "+c.P.cajonMin+") · "+({cinta:"cinta",torno:"torno",motor:"motor "+c.P.nm+" Nm"}[p.accion])+" · guías "+d2(c.P.guiaML)+" ml",cx+92,dy,cw2-92,{size:8.5,lh:10}); dy-=2; }
+    if(h.notas){ d.text("Nota",cx,dy,{size:7.3,bold:true,color:MUT});
+      dy-=d.para(h.notas,cx+92,dy,cw2-92,{size:8.5,lh:10}); }
+    const crit=c.av.filter(a=>a.t==="d"||a.t==="w");
+    let by=Math.min(dy,yy-dibAlto)-4;
+    crit.forEach(a=>{ by-=d.para((a.t==="d"?"ATENCIÓN: ":"Aviso: ")+a.x,d.ml+4,by,d.CW-8,{size:7.6,color:a.t==="d"?"#9E2B20":"#9A5A12",lh:9.6})+2; });
+    d.line(d.ml,by-6,d.R,by-6,LN,.5);
+    d.y=by-20;
+  });
+  // materiales de obra
+  const todos={};
+  S.huecos.forEach(x=>{ calc(x).mats.forEach(m=>{ todos[m.n]=todos[m.n]||{n:m.n,q:0,u:m.u}; todos[m.n].q+=m.q; }); });
+  const lista=Object.values(todos).sort((a,b)=>a.n.localeCompare(b.n,"es"));
+  d.need(40+lista.length*11);
+  let my=d.y;
+  d.text("MATERIAL DE INSTALACIÓN · TODA LA OBRA",d.ml,my,{size:7.5,bold:true,color:MUT});
+  my-=6; d.line(d.ml,my,d.R,my,LN,.6); my-=13;
+  lista.forEach(m=>{ if(my<d.mb+14){ d.newPage(); my=d.y; }
+    d.text(m.n,d.ml,my,{size:8.5});
+    d.text(qty(m.q)+" "+m.u,d.R,my,{size:8.5,align:"right"}); my-=11.5; });
+  pdfPieDePagina(d);
+  return d.build();
+}
+
+/* ---- descarga ---- */
+let _dl=null,_dlDone=false;
+async function getDL(){
+  if(_dlDone) return _dl;
+  _dlDone=true;
+  try{ _dl = (window.claude&&window.claude.use) ? await window.claude.use("downloads") : null; }catch(e){ _dl=null; }
+  return _dl;
+}
+function msgBox(id,tipo,txt){ const el=document.getElementById(id); if(!el) return;
+  el.innerHTML='<div class="note '+tipo+'"><span class="ic">'+({o:"OK",w:"!",d:"!!",i:"i"}[tipo])+'</span><span>'+esc(txt)+'</span></div>';
+  if(tipo==="o") setTimeout(()=>{ if(el.isConnected) el.innerHTML=""; },4000); }
+async function descargarPDF(tipo,boxId){
+  const btn=document.querySelector('[data-act="'+(tipo==="presupuesto"?"pdf":"pdftaller")+'"]');
+  if(btn){ btn.disabled=true; btn.dataset.old=btn.textContent; btn.textContent="Generando PDF…"; }
+  try{
+    const bytes = tipo==="presupuesto"?pdfPresupuesto():pdfTaller();
+    const nom = (tipo==="presupuesto"?"Presupuesto":"Hoja-de-taller")+" "+((S.obra.nombre||"obra").replace(/[\\/:*?"<>|]/g,"-").slice(0,50))+".pdf";
+    const dl=await getDL();
+    if(!dl){
+      // archivo portable o navegador normal: descarga clásica
+      try{
+        const url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
+        const a=document.createElement("a");
+        a.href=url; a.download=nom; a.rel="noopener";
+        document.body.appendChild(a); a.click();
+        setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },4000);
+        msgBox(boxId,"o","PDF generado: "+nom);
+      }catch(e){ msgBox(boxId,"w","Este visor no deja guardar archivos. Abre la app en el navegador del móvil o del ordenador y vuelve a pulsar."); }
+      return;
+    }
+    const r=await dl.save({filename:nom,data:new Blob([bytes],{type:"application/pdf"})});
+    if(r&&r.status==="saved") msgBox(boxId,"o","PDF guardado: "+nom);
+  }catch(err){
+    const c=err&&err.code;
+    if(c==="declined") msgBox(boxId,"i","Descarga cancelada.");
+    else if(c==="rate_limited") msgBox(boxId,"i","Espera un segundo y vuelve a pulsar.");
+    else msgBox(boxId,"d","No se ha podido generar el PDF"+(c?" ("+c+")":"")+". Avísame y lo reviso.");
+  } finally {
+    const b=document.querySelector('[data-act="'+(tipo==="presupuesto"?"pdf":"pdftaller")+'"]');
+    if(b&&b.dataset.old){ b.disabled=false; b.textContent=b.dataset.old; delete b.dataset.old; }
+  }
+}
+
+/* ============ IMPORTAR PRESUPUESTO DE PROVEEDOR ============ */
+let IMP={texto:"",items:[],estado:"",archivo:"",fabricacion:true,auto:false};
+function promptImport(texto){
+  const lista=(o,f)=>Object.keys(o).map(k=>k+" = "+(f?f(o[k]):o[k].n)).join("; ");
+  return [
+"Eres el ayudante de un montador de ventanas. Lee este presupuesto de un proveedor de carpintería y devuelve sus partidas en JSON.",
+"",
+"Devuelve EXACTAMENTE este formato, sin texto alrededor:",
+'{"proveedor":{"nombre":"","numero":"","fecha":"AAAA-MM-DD","total":0},"medidas":"fabricacion|hueco","items":[{"nombre":"","tipologia":"","material":"","ancho":0,"alto":0,"ud":1,"color":"","vidrio":"","persiana":{"on":false,"cajon":0,"lama":"","accion":""},"extras":[],"coste":0,"notas":""}]}',
+"",
+"Reglas:",
+"- coste = precio TOTAL de la partida sin IVA, en euros, número con punto decimal. Si el PDF da precio unitario y unidades, coste es el precio unitario.",
+"- ancho y alto en milímetros, números enteros. Si vienen en metros o centímetros, conviértelos.",
+"- nombre: una descripción corta de la partida, como la llamaría el montador (p. ej. 'Salón · corredera 2 hojas'). Usa la estancia si el PDF la menciona.",
+"- medidas: pon 'fabricacion' si el presupuesto da medidas de fabricación del fabricante, 'hueco' si está claro que son medidas de hueco de obra.",
+"- Ignora portes, montaje, descuentos, bases imponibles, IVA y totales: solo partidas de carpintería, mamparas o persianas.",
+"- Si un dato no aparece, deja la cadena vacía, 0 o false. No te lo inventes y anótalo en notas.",
+"",
+"Valores permitidos (usa la clave exacta de la izquierda):",
+"tipologia: "+lista(TIPOS),
+"material: "+lista(MATERIALES),
+"vidrio: "+lista(VIDRIOS),
+"lama: "+lista(LAMAS),
+"color: "+COLORES.map(c=>c.id+" = "+c.n).join("; "),
+"accion: cinta = cinta y recogedor; torno = torno; motor = motor tubular",
+"extras: mosquitera, vierteaguas, premarco, tapajuntas, manillaSeg, cierreSeg, limitador, barrotillo",
+"",
+"TEXTO DEL PRESUPUESTO:",
+texto.slice(0,24000)
+  ].join("\n");
+}
+function mapearItem(it){
+  const h=nuevoHueco(String(it.nombre||"Partida importada").slice(0,70));
+  if(TIPOS[it.tipologia]) h.tipologia=it.tipologia;
+  if(MATERIALES[it.material]) h.material=it.material;
+  h.ancho=Math.round(num(it.ancho))||1000;
+  h.alto=Math.round(num(it.alto))||1000;
+  h.ud=Math.max(1,Math.round(num(it.ud))||1);
+  if(VIDRIOS[it.vidrio]) h.vidrio=it.vidrio;
+  else h.vidrio=TIPOS[h.tipologia].mampara?"templado-8":"4be-16-4";
+  if(COLORES.some(c=>c.id===it.color)) h.color.id=it.color;
+  const p=it.persiana||{};
+  h.persiana.on=!!p.on && !TIPOS[h.tipologia].mampara;
+  if(h.persiana.on){
+    if(num(p.cajon)) h.persiana.cajon=Math.round(num(p.cajon));
+    if(LAMAS[p.lama]) h.persiana.lama=p.lama;
+    if(["cinta","torno","motor"].indexOf(p.accion)>=0) h.persiana.accion=p.accion;
+  }
+  Object.keys(h.extras).forEach(k=>{ h.extras[k]=false; });
+  h.extras.remates=true;
+  (it.extras||[]).forEach(k=>{ if(k in h.extras) h.extras[k]=true; });
+  if(IMP.fabricacion){ h.instalacion="obra"; h.holLat=0; h.holSup=0; h.holInf=0; }
+  h.serie="";
+  h.modoPrecio="coste";
+  h.coste=r2(num(it.coste));
+  h.notas=String(it.notas||"").slice(0,200);
+  h.origen=(S.obra.proveedor&&S.obra.proveedor.nombre)||"Proveedor";
+  return h;
+}
+/* Lectura de partidas sin IA: funciona también en el archivo portable */
+function medidaEn(txt){
+  const RAL=[9016,9005,9001,9010,9003,7016,7038,7035,7001,7012,1013,1015,6005,6009,8017,8019,8014,3004,5003,5010,2001];
+  const reA=/(\d{3,4})\s*(?:x|×|\*)/gi; let m, an=0, pos=-1;
+  while((m=reA.exec(txt))){ const v=+m[1]; if(v>=300&&v<=4000&&RAL.indexOf(v)<0){ an=v; pos=m.index+m[0].length; break; } }
+  if(!an) return null;
+  const resto=txt.slice(pos);
+  const reB=/\d{3,4}/g; let x, al=0;
+  while((x=reB.exec(resto))){
+    const i0=x.index, i1=i0+x[0].length;
+    const prev=resto.charAt(i0-1)||" ", next=resto.charAt(i1)||" ";
+    if(/[\d.,]/.test(prev)||/[\d.,]/.test(next)) continue;
+    const v=+x[0];
+    if(RAL.indexOf(v)>=0||v<300||v>4000) continue;
+    al=v; break;
+  }
+  return al?{a:an,h:al}:null;
+}
+function parsearLocal(texto){
+  const ESTANCIAS=["salón","salon","cocina","baño","bano","aseo","dormitorio","habitación","habitacion","terraza","pasillo","comedor","despacho","garaje","trastero","recibidor","ático","atico"];
+  const lineas=String(texto).split(/\r?\n/);
+  const rePre=/\d{1,3}(?:\.\d{3})+,\d{2}|\d+,\d{2}/g;
+  const items=[];
+  for(let i=0;i<lineas.length;i++){
+    const L=lineas[i], low=L.toLowerCase();
+    const precios=L.match(rePre);
+    if(!precios||!precios.length) continue;
+    if(/base imponible|^\s*total|total:|iva|i\.v\.a|subtotal|portes|transporte|descuento|forma de pago|plazo/.test(low)) continue;
+    const coste=parseFloat(precios[precios.length-1].replace(/\./g,"").replace(",","."));
+    if(!isFinite(coste)||coste<=0) continue;
+    // bloque de la partida: se extiende hasta tocar otra línea con precio
+    const bloque=[L];
+    for(let k=i-1;k>=Math.max(0,i-3);k--){ if(rePre.test(lineas[k])){ rePre.lastIndex=0; break; } rePre.lastIndex=0; bloque.unshift(lineas[k]); }
+    for(let k=i+1;k<Math.min(lineas.length,i+3);k++){ if(rePre.test(lineas[k])){ rePre.lastIndex=0; break; } rePre.lastIndex=0; bloque.push(lineas[k]); }
+    const win=bloque.join(" ");
+    const med=medidaEn(L)||medidaEn(win);
+    if(!med) continue;
+    const t=win.toLowerCase();
+    let tip="practicable-1";
+    const hojas=(/(\d)\s*hoja/.exec(t)||[])[1];
+    if(/mampara/.test(t)) tip=/corredera|deslizante/.test(t)?"mampara-corr-2":(/abatible|batiente/.test(t)?"mampara-abat":"mampara-fija");
+    else if(/oscilo\s*-?\s*paralel/.test(t)) tip="oscilopara-2";
+    else if(/oscilo/.test(t)) tip=hojas==="2"?"oscilo-2":"oscilo-1";
+    else if(/elevable/.test(t)) tip="elevable-2";
+    else if(/corredera|deslizante/.test(t)) tip=hojas==="4"?"corredera-4":(hojas==="3"?"corredera-3":"corredera-2");
+    else if(/balconera/.test(t)) tip="balconera-2";
+    else if(/puerta/.test(t)) tip=hojas==="2"?"puerta-2":"puerta-entrada";
+    else if(/proyectante|abatible/.test(t)) tip="abatible";
+    else if(/\bfij[oa]\b/.test(t)) tip="fijo";
+    else if(/practicable|ventana/.test(t)) tip=hojas==="2"?"practicable-2":"practicable-1";
+    let mat="pvc";
+    if(/mampara/.test(t)) mat="alu-mamp";
+    else if(/pvc/.test(t)) mat="pvc";
+    else if(/alumini/.test(t)) mat=/rpt|rotura|puente t/.test(t)?"alu-rpt":"alu";
+    let col="blanco";
+    if(/antracita|7016/.test(t)) col="antracita";
+    else if(/negro|9005/.test(t)) col="negro";
+    else if(/roble/.test(t)) col="roble";
+    else if(/nogal/.test(t)) col="nogal";
+    else if(/anodizado/.test(t)) col="anodizado";
+    else if(/7038|ágata|agata/.test(t)) col="gris7038";
+    let vid="4be-16-4";
+    if(/templado\s*10/.test(t)) vid="templado-10";
+    else if(/templado\s*6/.test(t)) vid="templado-6";
+    else if(/templado|mampara/.test(t)) vid="templado-8";
+    else if(/triple/.test(t)) vid="triple";
+    else if(/4\s*\+\s*4/.test(t)) vid="44-16-4be";
+    else if(/control solar/.test(t)) vid="ctrl-solar";
+    else if(/bajo emisivo|b\.?e\.?[\s,.]|térmic|termic/.test(t)) vid="4be-16-4";
+    else vid="4-16-4";
+    const pers={on:/persiana/.test(t)};
+    if(pers.on){
+      const cj=/caj[óo]n\s*(?:de\s*)?(\d{3})/.exec(t);
+      pers.cajon=cj?+cj[1]:185;
+      const tras=t.split("persiana")[1]||t;
+      pers.lama=/alumini/.test(tras)?"alu-45":"pvc-38";
+      pers.accion=/motor/.test(t)?"motor":(/torno/.test(t)?"torno":"cinta");
+    }
+    const extras=[];
+    if(/mosquitera/.test(t)) extras.push("mosquitera");
+    if(/vierteaguas/.test(t)) extras.push("vierteaguas");
+    if(/premarco/.test(t)) extras.push("premarco");
+    if(/tapajuntas/.test(t)) extras.push("tapajuntas");
+    // descripción: la línea con más letras del bloque
+    let desc="";
+    bloque.forEach(x=>{
+      const limpio=x.replace(rePre,"").replace(/[€]/g,"").trim();
+      const letras=(limpio.match(/[A-Za-zÁÉÍÓÚÑáéíóúñ]/g)||[]).length;
+      if(letras>8 && !/base imponible|iva|total|presupuesto|cliente|obra:|descripci|importe/i.test(limpio)
+         && limpio.length>desc.length) desc=limpio;
+    });
+    let nombre=desc.replace(/^[\s|]*\d{1,3}[\s.\-|)]+/,"").replace(/(\d{3,4})\s*(?:x|×)\s*(\d{3,4})?/gi,"")
+      .replace(/\s{2,}/g," ").replace(/[\s.\-·|,]+$/,"").trim();
+    const est=ESTANCIAS.filter(e=>t.indexOf(e)>=0)[0];
+    if(est && nombre.toLowerCase().indexOf(est)<0) nombre=est.charAt(0).toUpperCase()+est.slice(1)+" · "+nombre;
+    if(nombre.length>70) nombre=nombre.slice(0,70).trim();
+    if(!nombre) nombre=TIPOS[tip].n;
+    items.push({nombre:nombre,tipologia:tip,material:mat,ancho:med.a,alto:med.h,ud:1,
+      color:col,vidrio:vid,persiana:pers,extras:extras,coste:coste,notas:""});
+  }
+  // quitar repeticiones por precio y medida
+  const vistos={}, out=[];
+  items.forEach(it=>{ const k=it.ancho+"|"+it.alto+"|"+it.coste; if(vistos[k]) return; vistos[k]=1; out.push(it); });
+  return out;
+}
+async function interpretarPDF(){
+  const box="impMsg2";
+  if(!IMP.texto || IMP.texto.trim().length<40){ msgBox(box,"d","Pega o carga antes el texto del presupuesto."); return; }
+  IMP.estado="pensando"; renderAll();
+  try{
+    const sm = (window.claude&&window.claude.use) ? await window.claude.use("sample") : null;
+    if(!sm){
+      const loc=parsearLocal(IMP.texto);
+      IMP.estado=""; IMP.auto=true;
+      if(!loc.length){ renderAll(); msgBox(box,"w","No he reconocido ninguna partida con medidas y precio. Revisa el texto o crea los huecos a mano."); return; }
+      IMP.items=loc.map(it=>({sel:true,it:it})); IMP.estado="listo"; renderAll(); return;
+    }
+    IMP.auto=false;
+    const r=await sm.json(promptImport(IMP.texto),{modelTier:"complex"});
+    const items=(r&&r.items)||[];
+    if(!items.length){ IMP.estado=""; renderAll(); msgBox(box,"w","No he reconocido partidas de carpintería en ese texto. Revisa que se haya copiado entero."); return; }
+    if(r.medidas==="hueco") IMP.fabricacion=false;
+    if(r.proveedor) S.obra.proveedor=Object.assign({texto:IMP.texto.slice(0,6000)},r.proveedor);
+    IMP.items=items.map(it=>({sel:true,it:it}));
+    IMP.estado="listo";
+    renderAll();
+  }catch(err){
+    IMP.estado=""; renderAll();
+    const c=err&&err.code;
+    if(c==="not_granted") msgBox(box,"w","No se ha dado permiso para la lectura automática. Vuelve a pulsar y acepta, o crea los huecos a mano.");
+    else if(c==="rate_limited") msgBox(box,"i","Demasiadas peticiones seguidas. Espera unos segundos y vuelve a pulsar.");
+    else msgBox(box,"d","No he podido interpretar el presupuesto. Prueba a recortar el texto a la tabla de partidas y vuelve a intentarlo.");
+  }
+}
+async function cargarPDFProveedor(file){
+  const box="impMsg2";
+  if(!file) return;
+  if(!/\.pdf$/i.test(file.name||"") && file.type!=="application/pdf"){ msgBox(box,"d","Eso no es un PDF. Si tienes el presupuesto en otro formato, copia el texto y pégalo abajo."); return; }
+  if(file.size>25*1024*1024){ msgBox(box,"d","El PDF pesa más de 25 MB."); return; }
+  IMP.archivo=file.name||"presupuesto.pdf";
+  msgBox(box,"i","Leyendo el PDF…");
+  try{
+    if(typeof DecompressionStream==="undefined"){
+      msgBox(box,"w","Este navegador no puede abrir PDFs comprimidos. Ábrelo en el navegador del móvil o del ordenador, o copia las partidas en el cuadro de abajo."); return; }
+    const buf=await file.arrayBuffer();
+    const r=await PDFTexto.extraer(new Uint8Array(buf),15);
+    const txt=r.paginas.join("\n\n").trim();
+    if(!txt){ msgBox(box,"w","Ese PDF no lleva texto dentro: es un escaneo o una imagen. Copia las partidas a mano en el cuadro de abajo."); return; }
+    IMP.texto=txt; IMP.items=[]; IMP.estado="";
+    clearTimeout(refresh._t); renderAll();
+    msgBox(box,"o","Leídas "+r.paginas.length+" de "+r.total+" páginas. Revisa el texto y pulsa Interpretar.");
+  }catch(e){
+    if(e&&e.message==="cifrado") msgBox(box,"d","El PDF está protegido con contraseña. Ábrelo, imprímelo a PDF sin protección y vuelve a subirlo.");
+    else if(e&&e.message==="no-pdf") msgBox(box,"d","El archivo no parece un PDF válido.");
+    else msgBox(box,"d","No he podido leer ese PDF. Copia el texto del presupuesto y pégalo en el cuadro de abajo.");
+  }
+}
+
+/* ---- carga de logotipos ---- */
+function cargarLogo(file,slot){
+  const box="logoMsg";
+  if(!file) return;
+  if(!/^image\//.test(file.type)){ msgBox(box,"d","Ese archivo no es una imagen. Sube un PNG, JPG o WEBP."); return; }
+  if(file.size>8*1024*1024){ msgBox(box,"d","La imagen pesa más de 8 MB. Reduce el tamaño antes de subirla."); return; }
+  const fr=new FileReader();
+  fr.onerror=()=>msgBox(box,"d","No se ha podido leer el archivo.");
+  fr.onload=()=>{
+    const img=new Image();
+    img.onerror=()=>msgBox(box,"d","No se ha podido abrir la imagen. Si es un SVG, expórtalo a PNG y vuelve a intentarlo.");
+    img.onload=()=>{
+      const maxw=760, k=Math.min(1,maxw/(img.naturalWidth||img.width||maxw));
+      const w=Math.max(1,Math.round((img.naturalWidth||img.width)*k)), hh=Math.max(1,Math.round((img.naturalHeight||img.height)*k));
+      const cv=document.createElement("canvas"); cv.width=w; cv.height=hh;
+      const ctx=cv.getContext("2d");
+      ctx.fillStyle="#FFFFFF"; ctx.fillRect(0,0,w,hh);
+      ctx.drawImage(img,0,0,w,hh);
+      let data;
+      try{ data=cv.toDataURL("image/jpeg",0.86); }catch(e){ msgBox(box,"d","El navegador ha bloqueado la conversión de esa imagen."); return; }
+      S.empresa[slot]={data:data,w:w,h:hh};
+      try{ save(); }catch(e){}
+      const probe=(()=>{ try{ localStorage.setItem(KEY,JSON.stringify(S)); return true; }catch(e){ return false; } })();
+      clearTimeout(refresh._t); renderAll();
+      if(!probe) msgBox(box,"w","El logotipo se ha cargado, pero no cabe en el almacenamiento del navegador. Usa una imagen más pequeña si quieres conservarlo al cerrar.");
+      else msgBox(box,"o","Logotipo cargado.");
+    };
+    img.src=fr.result;
+  };
+  fr.readAsDataURL(file);
+}
+
+/* ============ VISTAS ============ */
+const TABS=[{k:"empresa",n:"Empresa"},{k:"obra",n:"Obra"},{k:"importar",n:"Importar"},{k:"medidas",n:"Medidas"},{k:"persiana",n:"Persiana"},
+  {k:"vidrio",n:"Vidrio y color"},{k:"materiales",n:"Materiales"},{k:"montaje",n:"Montaje"},
+  {k:"precio",n:"Presupuesto"},{k:"pedido",n:"Pedido"}];
+
+function opt(map,v,fn){ return Object.keys(map).map(k=>`<option value="${k}"${k===v?" selected":""}>${esc(fn?fn(map[k],k):map[k].n)}</option>`).join(""); }
+function fNum(lab,path,hint,step){ const v=getPath(path); return `<div class="f"><label>${lab}</label><input type="number" inputmode="decimal" step="${step||1}" data-path="${path}" value="${v}"/>${hint?`<span class="hint">${hint}</span>`:""}</div>`; }
+function fTxt(lab,path,ph){ return `<div class="f"><label>${lab}</label><input type="text" data-path="${path}" value="${esc(getPath(path))}" placeholder="${ph||""}"/></div>`; }
+function fSel(lab,path,html,struct){ return `<div class="f"><label>${lab}</label><select data-path="${path}"${struct?' data-struct="1"':""}>${html}</select></div>`; }
+function fChk(lab,path,struct){ const on=!!getPath(path); return `<label class="chk${on?" on":""}"><input type="checkbox" data-path="${path}"${on?" checked":""}${struct?' data-struct="1"':""}/><span>${lab}</span></label>`; }
+const GLOBAL=/^(obra|tarifa|empresa)\./;
+function getPath(p){ const h=sel(); let o=GLOBAL.test(p)?S:h; p.split(".").forEach(k=>{o=o?o[k]:undefined;}); return o===undefined||o===null?"":o; }
+function setPath(p,v){ const h=sel(); let o=GLOBAL.test(p)?S:h; const ks=p.split("."); ks.slice(0,-1).forEach(k=>{ if(!o[k])o[k]={}; o=o[k]; }); o[ks[ks.length-1]]=v; }
+
+function slotLogo(slot,titulo,pista){
+  const L=S.empresa[slot];
+  return `<div class="logobox">
+    <div class="logoprev${L&&L.data?" has":""}">${L&&L.data?`<img src="${L.data}" alt="${esc(titulo)}"/>`:`<span>Sin ${esc(titulo.toLowerCase())}</span>`}</div>
+    <div style="min-width:0;flex:1">
+      <div style="font-weight:600;font-size:14px">${esc(titulo)}</div>
+      <div class="hint" style="margin:2px 0 8px">${esc(pista)}</div>
+      <input type="file" accept="image/*" id="file_${slot}" data-logo="${slot}" class="fnative"/>
+      <div class="drop pastebox" data-paste="${slot}" tabindex="0">o toca aquí y pega la imagen copiada</div>
+      ${L&&L.data?`<div class="row" style="margin-top:8px"><button class="btn danger sm" data-act="dellogo" data-slot="${slot}">Quitar</button></div>`:""}
+    </div>
+  </div>`;
+}
+function vEmpresa(){
+  const E=S.empresa;
+  return `<div class="sect-title">Tu empresa</div>
+  <div class="sect-sub">Esto es lo que sale en la cabecera del PDF. Se rellena una vez y vale para todas las obras.</div>
+  <div class="card"><h3>Logotipos</h3>
+    ${slotLogo("logo","Logotipo principal","Va arriba a la izquierda del presupuesto y de la hoja de taller. PNG o JPG, apaisado funciona mejor.")}
+    <div style="height:10px"></div>
+    ${slotLogo("sello","Sello o segundo logo","Opcional. Se imprime dentro del recuadro de firma: sello de empresa, certificación o marca del sistema.")}
+    <div id="logoMsg" style="margin-top:10px"></div>
+    <div class="f" style="margin-top:12px"><label>Color corporativo del PDF</label>
+      <div class="f inline"><input type="color" data-path="empresa.color" value="${esc(E.color||"#0D6E63")}" style="width:52px;height:38px;padding:3px"/>
+        <span class="hint">Titulares, numeración y franja del total.</span></div></div>
+  </div>
+  <div class="card"><h3>Datos fiscales</h3>
+    <div class="grid g2">
+      ${fTxt("Nombre o razón social","empresa.nombre","Ventanas Pérez SL")}
+      ${fTxt("CIF / NIF","empresa.cif","B12345678")}
+      ${fTxt("Dirección","empresa.dir","Pol. Ind. ... nave 4")}
+      ${fTxt("Código postal","empresa.cp","28001")}
+      ${fTxt("Localidad","empresa.ciudad","Madrid")}
+      ${fTxt("Teléfono","empresa.tel","600 000 000")}
+      ${fTxt("Email","empresa.email","info@...")}
+      ${fTxt("Web","empresa.web","www...")}
+    </div>
+  </div>
+  <div class="card"><h3>Condiciones del presupuesto</h3>
+    <div class="grid g2">
+      ${fTxt("Nº de presupuesto","empresa.numero","2026-001")}
+      ${fNum("Validez (días)","empresa.validez","")}
+    </div>
+    <div class="f" style="margin-top:10px"><label>Plazo de entrega</label><textarea rows="2" data-path="empresa.plazo">${esc(E.plazo||"")}</textarea></div>
+    <div class="f" style="margin-top:10px"><label>Forma de pago</label><textarea rows="2" data-path="empresa.pago">${esc(E.pago||"")}</textarea></div>
+    <div class="f" style="margin-top:10px"><label>Garantía</label><textarea rows="2" data-path="empresa.garantia">${esc(E.garantia||"")}</textarea></div>
+    <div class="f" style="margin-top:10px"><label>Otras condiciones</label><textarea rows="3" data-path="empresa.condiciones">${esc(E.condiciones||"")}</textarea></div>
+    <div style="margin-top:10px">${fChk("Desglosar los precios de cada partida en el PDF","empresa.detalle",true)}</div>
+  </div>
+  <div class="card"><h3>Descargar</h3>
+    <div class="row">
+      <button class="btn" data-act="pdf">Presupuesto en PDF</button>
+      <button class="btn sec" data-act="pdftaller">Hoja de taller en PDF</button>
+    </div>
+    <div id="pdfMsgE" style="margin-top:10px"></div>
+  </div>`;
+}
+function vImportar(){
+  const P=S.obra.proveedor||{};
+  const pensando=IMP.estado==="pensando";
+  let rev="";
+  if(IMP.items.length){
+    rev=`<div class="card"><h3>Partidas detectadas (${IMP.items.length})</h3>
+      <div class="grid" style="gap:8px;margin-bottom:10px">
+        <label class="chk${IMP.fabricacion?" on":""}"><input type="checkbox" id="impFab"${IMP.fabricacion?" checked":""}/><span>Las medidas del proveedor ya son de fabricación</span></label>
+      </div>
+      ${IMP.items.map((r,i)=>{ const it=r.it, T=TIPOS[it.tipologia];
+        return `<label class="impitem${r.sel?" on":""}">
+          <input type="checkbox" data-imp="${i}"${r.sel?" checked":""}/>
+          <span style="min-width:0;flex:1">
+            <span class="nm">${esc(it.nombre||"Partida")}</span>
+            <span class="mt">${esc(T?T.n:"tipología sin reconocer")}${it.material&&MATERIALES[it.material]?" · "+esc(MATERIALES[it.material].n):""}</span>
+            <span class="mt">${r0(num(it.ancho))} × ${r0(num(it.alto))} mm${num(it.ud)>1?" · ×"+r0(num(it.ud)):""}${it.persiana&&it.persiana.on?" · con persiana":""}</span>
+            ${it.notas?`<span class="mt" style="color:var(--warn)">${esc(it.notas)}</span>`:""}
+          </span>
+          <span class="pr">${eur(num(it.coste))}</span>
+        </label>`; }).join("")}
+      <div class="row" style="margin-top:12px">
+        <button class="btn" data-act="impcrear">Crear ${IMP.items.filter(r=>r.sel).length} huecos</button>
+        <button class="btn sec" data-act="impcancelar">Descartar</button>
+      </div>
+      ${IMP.auto?`<div class="note w" style="margin-top:10px"><span class="ic">!</span><span>Partidas detectadas por palabras clave, sin interpretación por IA. Revisa con calma tipología, vidrio y persiana de cada una.</span></div>`:""}
+      <div class="note i" style="margin-top:10px"><span class="ic">i</span><span>Lo que cree la app es un punto de partida: revisa tipología, medidas y vidrio hueco por hueco antes de pasar el presupuesto al cliente. El precio del proveedor queda guardado como coste y tu precio sale aplicando el margen.</span></div>
+    </div>`;
+  }
+  return `<div class="sect-title">Importar presupuesto de proveedor</div>
+  <div class="sect-sub">Sube el PDF que te pasa el fabricante. La app lee las partidas, las convierte en huecos y guarda su precio como tu coste; tú le aplicas tu margen y sale con tu membrete.</div>
+  <div class="card"><h3>1 · El PDF del proveedor</h3>
+    <div class="f"><label>PDF del proveedor</label>
+      <input type="file" accept=".pdf,application/pdf" id="pdfProv" class="fnative"/>
+      <span class="hint">Si al tocarlo no se abre nada, es el visor de la app el que lo bloquea: abre esta app en el navegador del móvil, o pega las partidas en el cuadro de abajo.</span></div>
+    ${IMP.texto?`<div class="row" style="margin-top:10px"><button class="btn sec" data-act="impborrar">Vaciar</button></div>`:""}
+    <div class="drop" id="dropPdf">o arrastra aquí el archivo PDF</div>
+    ${IMP.archivo?`<div class="hint" style="margin-top:8px">Archivo: ${esc(IMP.archivo)}</div>`:""}
+    <div id="impMsg2" style="margin-top:10px"></div>
+    <div class="f" style="margin-top:10px"><label>Texto del presupuesto (puedes corregirlo o pegarlo a mano)</label>
+      <textarea id="impTexto" rows="8" placeholder="Si el PDF es un escaneo, copia aquí las partidas: descripción, medidas, unidades y precio de cada una.">${esc(IMP.texto)}</textarea></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" data-act="impleer"${pensando?" disabled":""}>${pensando?"Interpretando…":"Interpretar partidas"}</button>
+    </div>
+  </div>
+  ${rev}
+  <div class="card"><h3>2 · Tu margen</h3>
+    <div class="grid g2">
+      ${fNum("Margen sobre coste de proveedor (%)","tarifa.margen","Se aplica a todo hueco con coste")}
+      <div class="f"><label>Precio de venta de 100 € de coste</label><input type="text" value="${eur(100*(1+num(S.tarifa.margen)/100))}" readonly/></div>
+    </div>
+    <div class="note i" style="margin-top:10px"><span class="ic">i</span><span>El margen cubre tu riesgo y tu gestión; la mano de obra se cobra aparte, por horas, desde la tarifa.</span></div>
+  </div>
+  ${P.nombre?`<div class="card"><h3>Presupuesto de origen</h3>
+    <table class="t">
+      <tr><td>Proveedor</td><td class="n">${esc(P.nombre)}</td></tr>
+      ${P.numero?`<tr><td>Número</td><td class="n">${esc(P.numero)}</td></tr>`:""}
+      ${P.fecha?`<tr><td>Fecha</td><td class="n">${esc(P.fecha)}</td></tr>`:""}
+      ${num(P.total)?`<tr><td>Total del proveedor</td><td class="n">${eur(num(P.total))}</td></tr>`:""}
+    </table>
+    <div class="note i" style="margin-top:10px"><span class="ic">i</span><span>Estos datos quedan solo para ti: no aparecen en el presupuesto que ve tu cliente.</span></div>
+  </div>`:""}`;
+}
+function vObra(){
+  const t=totalObra();
+  return `<div class="sect-title">Datos de la obra</div>
+  <div class="sect-sub">Todo lo que mides queda guardado en este dispositivo. Exporta desde la pestaña Pedido antes de cambiar de móvil.</div>
+  <div class="card"><h3>Cliente</h3>
+    <div class="grid g2">
+      ${fTxt("Obra / referencia","obra.nombre","C/ ... nº")}
+      ${fTxt("Cliente","obra.cliente","Nombre y apellidos")}
+      ${fTxt("Teléfono","obra.tel","")}
+      ${fTxt("Email","obra.email","")}
+      <div class="f"><label>Fecha de medición</label><input type="date" data-path="obra.fecha" value="${esc(S.obra.fecha)}"/></div>
+      ${fTxt("Medidor","obra.medidor","Quién toma medidas")}
+    </div>
+    <div class="f" style="margin-top:10px"><label>Notas de obra</label><textarea rows="2" data-path="obra.notas" placeholder="Acceso, ascensor, horarios, quién retira escombro...">${esc(S.obra.notas)}</textarea></div>
+  </div>
+  <div class="card"><h3>Huecos medidos (${S.huecos.length})</h3>
+    ${S.huecos.map((h,i)=>{ const c=calc(h); const dan=c.av.filter(a=>a.t==="d").length, war=c.av.filter(a=>a.t==="w").length;
+      return `<button class="hueco${h.id===S.sel?" sel":""}" data-pick="${h.id}">
+        <span class="ix">${String(i+1).padStart(2,"0")}</span>
+        <span style="min-width:0;flex:1">
+          <span class="nm">${esc(h.nombre)}${h.ejemplo?' <span class="tag-ex">ejemplo</span>':""}</span>
+          <span class="mt">${c.anchoFab} × ${c.altoFab} · ${esc(c.T.n)}${c.ud>1?" · ×"+c.ud:""}</span>
+          <span style="display:block;margin-top:4px">${dan?`<span class="pill da">${dan} a revisar</span> `:""}${!dan&&war?`<span class="pill wa">${war} aviso${war>1?"s":""}</span> `:""}${!dan&&!war?`<span class="pill ok">OK</span> `:""}${c.P?'<span class="pill">persiana</span> ':""}</span>
+        </span>
+        <span class="pr">${eur(c.totalHueco)}</span>
+      </button>`; }).join("")}
+    <div class="row" style="margin-top:10px">
+      <button class="btn" data-act="add">Añadir hueco</button>
+      <button class="btn sec" data-act="dup">Duplicar seleccionado</button>
+      ${S.huecos.length>1?'<button class="btn danger" data-act="del">Eliminar</button>':""}
+    </div>
+  </div>
+  <div class="card"><h3>Resumen económico</h3>
+    <div class="res">
+      <div><div class="k">Material y suministro</div><div class="v">${eur(t.mat)}</div></div>
+      <div><div class="k">Mano de obra</div><div class="v">${eur(t.mo)}</div></div>
+      <div class="wide"><div class="k">Total con IVA (${num(S.tarifa.iva)} %)</div><div class="v" style="font-size:26px">${eur(t.total)}</div><div class="s">${S.huecos.length} huecos · ${S.huecos.reduce((s,h)=>s+Math.max(1,num(h.ud)||1),0)} unidades</div></div>
+    </div>
+  </div>`;
+}
+
+function vMedidas(){
+  const h=sel(), c=calc(h), reno=h.instalacion==="renovacion";
+  return `<div class="sect-title">${esc(h.nombre)}</div>
+  <div class="sect-sub">Medida de hueco → medida de fabricación. Mide siempre en tres puntos y quédate con la menor.</div>
+  <div class="card"><h3>Identificación</h3>
+    <div class="grid g2">
+      ${fTxt("Nombre del hueco","nombre","Salón · ventana 1")}
+      ${fTxt("Estancia","estancia","Cocina")}
+      ${fSel("Planta","planta",["Sótano","Planta baja","Planta 1ª","Planta 2ª","Planta 3ª o superior","Ático"].map(p=>`<option${p===h.planta?" selected":""}>${p}</option>`).join(""))}
+      ${fNum("Unidades iguales","ud","Se repite esta misma medida")}
+      ${fSel("Tipología","tipologia",opt(TIPOS,h.tipologia),true)}
+      ${fSel("Material","material",opt(MATERIALES,h.material),true)}
+      ${fTxt("Serie / sistema","serie","70 mm · 5 cámaras")}
+      ${fSel("Instalación","instalacion",`
+        <option value="obra"${h.instalacion==="obra"?" selected":""}>A hueco de obra</option>
+        <option value="premarco"${h.instalacion==="premarco"?" selected":""}>Sobre premarco</option>
+        <option value="renovacion"${h.instalacion==="renovacion"?" selected":""}>Renovación (solape sobre marco viejo)</option>`,true)}
+    </div>
+  </div>
+  <div class="card"><h3>Medida del hueco</h3>
+    <div class="grid g2">
+      ${fNum("Ancho del hueco (mm)","ancho", reno?"Medida vista del marco existente":"Entre jambas, la menor de 3 tomas")}
+      ${fNum("Alto del hueco (mm)","alto", reno?"De vierteaguas a cajón":"De dintel a alféizar")}
+    </div>
+    ${reno?`<div class="grid g3" style="margin-top:10px">
+        ${fNum("Solape lateral (mm)","solLat","Por lado, sobre el marco viejo")}
+        ${fNum("Solape superior (mm)","solSup","")}
+        ${fNum("Solape inferior (mm)","solInf","0 si apoya en vierteaguas")}
+      </div>`:`<div class="grid g3" style="margin-top:10px">
+        ${fNum("Holgura lateral (mm)","holLat","Por lado, para calzar y espumar")}
+        ${fNum("Holgura superior (mm)","holSup","")}
+        ${fNum("Holgura inferior (mm)","holInf","0 si apoya directo")}
+      </div>`}
+    <div class="grid g2" style="margin-top:10px">
+      ${fNum("Fijo superior / montante (mm)","montante","0 si no lleva")}
+      <div class="f"><label>Área del hueco</label><input type="text" value="${d2(c.areaHueco)} m²" readonly/></div>
+    </div>
+  </div>
+  <div class="card"><h3>Medida de fabricación</h3>
+    <div class="res">
+      <div class="wide"><div class="k">Pedir a fábrica</div><div class="v" style="font-size:27px">${c.anchoFab} × ${c.altoFab} <small>mm</small></div><div class="s">${reno?"incluye solape":"hueco menos holguras"} · ${d2(c.areaFab)} m²${c.ud>1?" · "+c.ud+" uds":""}</div></div>
+      <div><div class="k">Marco de ventana</div><div class="v">${c.anchoFab} × ${c.altoVent}</div><div class="s">${c.restaCajon?"descontado cajón "+c.cajon+" mm":"sin cajón integrado"}</div></div>
+      <div><div class="k">${c.nHojas?"Hoja":"Paño fijo"}</div><div class="v">${c.nHojas?c.anchoHoja+" × "+c.altoHoja:"—"}</div><div class="s">${c.nHojas?c.nHojas+" hojas"+(c.T.corr?" (con solape central)":""):"sin apertura"}</div></div>
+      ${c.T.puerta?`<div><div class="k">Paso libre</div><div class="v">${c.pasoLibre} × ${c.altoPaso}</div><div class="s">luz útil aproximada</div></div>`:""}
+      <div><div class="k">Peso del conjunto</div><div class="v">${d1(c.pesoTotal)} <small>kg</small></div><div class="s">${c.nHojas?"hoja: "+d1(c.pesoHoja)+" kg":"vidrio: "+d1(c.pesoVidrio)+" kg"}</div></div>
+      ${!c.T.mampara?`<div><div class="k">Uw estimado</div><div class="v">${d2(c.uw)} <small>W/m²K</small></div><div class="s">vidrio + perfil + intercalario</div></div>`:""}
+    </div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">${elevacion(h,c)}
+      <div class="s" style="font-size:11.5px;color:var(--ink-3);text-align:center">Alzado visto desde el interior · el trazo discontinuo marca el lado de apertura</div>
+    </div>
+  </div>
+  <div class="card"><h3>Avisos</h3><div id="avisos">${avisosHTML(c)}</div></div>`;
+}
+function avisosHTML(c){
+  if(!c.av.length) return `<div class="note o"><span class="ic">OK</span><span>Nada que corregir con los datos actuales.</span></div>`;
+  const ic={d:"!!",w:"!",i:"i",o:"OK"};
+  return c.av.map(a=>`<div class="note ${a.t}"><span class="ic">${ic[a.t]}</span><span>${esc(a.x)}</span></div>`).join("");
+}
+
+function vPersiana(){
+  const h=sel(), c=calc(h), p=h.persiana;
+  if(!p.on) return `<div class="sect-title">Persiana</div>
+    <div class="sect-sub">${esc(h.nombre)}</div>
+    <div class="card">${fChk("Este hueco lleva persiana","persiana.on",true)}
+    <div class="note i" style="margin-top:12px"><span class="ic">i</span><span>Sin persiana el alto de fabricación se aprovecha entero para el marco. Si el hueco tiene capialzado antiguo que se conserva, actívala y marca que el cajón no se descuenta.</span></div></div>`;
+  return `<div class="sect-title">Persiana</div>
+  <div class="sect-sub">${esc(h.nombre)} · hueco ${c.anchoFab} × ${c.altoFab} mm</div>
+  <div class="card"><h3>Sistema</h3>
+    <div class="grid" style="gap:8px">${fChk("Este hueco lleva persiana","persiana.on",true)}</div>
+    <div class="grid g2" style="margin-top:10px">
+      ${fSel("Tipo de cajón","persiana.sistema",`
+        <option value="monoblock"${p.sistema==="monoblock"?" selected":""}>Monoblock (cajón integrado en la ventana)</option>
+        <option value="capialzado"${p.sistema==="capialzado"?" selected":""}>Capialzado de obra</option>
+        <option value="compacto"${p.sistema==="compacto"?" selected":""}>Compacto autoportante</option>
+        <option value="exterior"${p.sistema==="exterior"?" selected":""}>Cajón exterior en fachada</option>`,true)}
+      ${fSel("Lama","persiana.lama",opt(LAMAS,p.lama))}
+      ${fSel("Accionamiento","persiana.accion",`
+        <option value="cinta"${p.accion==="cinta"?" selected":""}>Cinta y recogedor</option>
+        <option value="torno"${p.accion==="torno"?" selected":""}>Torno con manivela</option>
+        <option value="motor"${p.accion==="motor"?" selected":""}>Motor tubular</option>`,true)}
+      ${fNum("Alto del cajón (mm)","persiana.cajon","165 · 185 · 205 · 225 · 250")}
+      ${fNum("Entrada en guías por lado (mm)","persiana.guias","Se descuenta del ancho de lama")}
+      ${fNum("Solape inferior (mm)","persiana.solapeInf","Lo que baja por debajo del hueco")}
+    </div>
+    <div class="grid g2" style="margin-top:10px">
+      ${fChk("El cajón ocupa parte del hueco (se descuenta del alto)","persiana.descontar",true)}
+      ${p.accion==="motor"?fChk("Incluir mando vía radio","persiana.mando"):""}
+    </div>
+  </div>
+  <div class="card"><h3>Resultado</h3>
+    <div class="res">
+      <div><div class="k">Lama</div><div class="v">${c.P.anchoLama} × ${c.P.altoLama}</div><div class="s">${d2(c.P.m2)} m² · ${esc(c.P.lama)}</div></div>
+      <div><div class="k">Peso del tambor</div><div class="v">${d1(c.P.peso)} <small>kg</small></div><div class="s">eje ${esc(c.P.eje)}</div></div>
+      <div><div class="k">Cajón mínimo</div><div class="v" style="color:${c.P.cajonOk?"var(--ok)":"var(--danger)"}">${c.P.cajonMin} <small>mm</small></div><div class="s">tienes ${num(p.cajon)} mm</div></div>
+      <div><div class="k">${p.accion==="motor"?"Motor":"Guías"}</div><div class="v">${p.accion==="motor"?c.P.nm+" <small>Nm</small>":d2(c.P.guiaML)+" <small>ml</small>"}</div><div class="s">${p.accion==="motor"?"guías "+d2(c.P.guiaML)+" ml":"accionamiento manual"}</div></div>
+    </div>
+    <table class="t" style="margin-top:12px">
+      <tr><th>Alto de lama recogida</th><th style="text-align:right">Cajón</th></tr>
+      ${CAJONES.map(x=>`<tr${x.c===c.P.cajonMin?' style="background:var(--surface-2);font-weight:600"':""}><td>hasta ${x.max} mm</td><td class="n">${x.c} mm</td></tr>`).join("")}
+    </table>
+    <div class="note i" style="margin-top:10px"><span class="ic">i</span><span>Tabla orientativa para lama de 45 mm. Con lama de 55 mm o de seguridad, sube un escalón de cajón.</span></div>
+    <div id="avisosP" style="margin-top:10px">${avisosHTML({av:c.av.filter(a=>/persiana|cajón|lama/i.test(a.x))})}</div>
+  </div>`;
+}
+
+function vVidrio(){
+  const h=sel(), c=calc(h);
+  const vs=Object.keys(VIDRIOS).filter(k=>{ const V=VIDRIOS[k];
+    if(c.T.mampara) return V.cat==="mampara";
+    return V.cat!=="mampara"; });
+  return `<div class="sect-title">Vidrio, paneles y color</div>
+  <div class="sect-sub">${esc(h.nombre)}</div>
+  <div class="card"><h3>Composición</h3>
+    <div class="f"><label>Vidrio o panel</label><select data-path="vidrio" data-struct="1">${vs.map(k=>`<option value="${k}"${k===h.vidrio?" selected":""}>${esc(VIDRIOS[k].n)}</option>`).join("")}</select>
+      <span class="hint">${esc(c.V.n)} · Ug ${c.V.ug} W/m²K${c.V.pm2?" · +"+c.V.pm2+" €/m²":" · sin recargo"}</span></div>
+    <div class="grid g2" style="margin-top:10px">
+      ${fChk("Descuento de galce automático por serie","autoDesc",true)}
+      ${h.autoDesc===false?fNum("Descuento por lado (mm)","descVidrio","Desde medida de hoja"):`<div class="f"><label>Descuento aplicado</label><input type="text" value="${c.d} mm por lado" readonly/><span class="hint">según ${esc(c.M.n)} · ${esc(c.T.fam)}</span></div>`}
+    </div>
+    <div class="scroll-x" style="margin-top:12px"><table class="t">
+      <tr><th>Pieza</th><th class="n">Uds</th><th class="n">Ancho</th><th class="n">Alto</th><th class="n">m²</th></tr>
+      ${c.piezas.map(p=>`<tr><td>${esc(p.t)}</td><td class="n">${p.n*c.ud}</td><td class="n">${p.a}</td><td class="n">${p.h}</td><td class="n">${d2(p.m2)}</td></tr>`).join("")}
+      <tr class="tot"><td>Total vidrio</td><td class="n">${c.piezas.reduce((s,p)=>s+p.n,0)*c.ud}</td><td class="n">—</td><td class="n">—</td><td class="n">${d2(c.areaVid*c.ud)}</td></tr>
+    </table></div>
+    <div class="res" style="margin-top:12px">
+      <div><div class="k">Peso del vidrio</div><div class="v">${d1(c.pesoVidrio*c.ud)} <small>kg</small></div><div class="s">${c.V.panel?"panel":c.V.mm+" mm de vidrio"}</div></div>
+      <div><div class="k">Pieza mayor</div><div class="v">${d2(Math.max.apply(null,c.piezas.map(p=>p.m2)))} <small>m²</small></div><div class="s">${Math.max.apply(null,c.piezas.map(p=>p.m2))>2.5?"ventosas y dos operarios":"manejable a mano"}</div></div>
+    </div>
+  </div>
+  <div class="card"><h3>Color y acabado</h3>
+    <div class="swatches">${COLORES.map(C=>`<button class="sw${h.color.id===C.id?" on":""}" data-color="${C.id}"><i style="background:${C.hex}"></i>${esc(C.n)}${C.rec?` +${Math.round(C.rec*100)}%`:""}</button>`).join("")}</div>
+    <div class="grid g2" style="margin-top:12px">
+      ${fChk("Bicolor (interior distinto)","color.bicolor",true)}
+      ${h.color.bicolor?fSel("Color interior","color.interior",COLORES.map(C=>`<option value="${C.id}"${h.color.interior===C.id?" selected":""}>${esc(C.n)}</option>`).join("")):""}
+    </div>
+    <div class="note i" style="margin-top:10px"><span class="ic">i</span><span>En foliados oscuros sobre PVC, pide refuerzo de acero y evita montarlos en fachada sur sin sombra: dilatan más y alargan el plazo de fábrica.</span></div>
+  </div>
+  <div class="card"><h3>Extras del hueco</h3>
+    <div class="grid g2">
+      ${fChk("Mosquitera","extras.mosquitera",true)}
+      ${fChk("Vierteaguas de aluminio","extras.vierteaguas",true)}
+      ${fChk("Premarco","extras.premarco",true)}
+      ${fChk("Tapajuntas interior","extras.tapajuntas",true)}
+      ${fChk("Manilla con llave","extras.manillaSeg",true)}
+      ${fChk("Herraje antipalanca","extras.cierreSeg",true)}
+      ${fChk("Limitador de apertura","extras.limitador",true)}
+      ${fChk("Barrotillo / cuadrícula","extras.barrotillo",true)}
+      ${fChk("Remates y banda de estanqueidad","extras.remates",true)}
+    </div>
+    <div class="f" style="margin-top:12px"><label>Notas de este hueco</label><textarea rows="2" data-path="notas" placeholder="Hay radiador debajo, el alféizar está descuadrado 12 mm...">${esc(h.notas||"")}</textarea></div>
+  </div>`;
+}
+
+function vMateriales(){
+  const h=sel(), c=calc(h);
+  const todos={};
+  S.huecos.forEach(x=>{ calc(x).mats.forEach(m=>{ todos[m.n]=todos[m.n]||{n:m.n,q:0,u:m.u}; todos[m.n].q+=m.q; }); });
+  return `<div class="sect-title">Materiales</div>
+  <div class="sect-sub">Lo que hay que cargar en la furgoneta, calculado sobre las medidas reales.</div>
+  <div class="card"><h3>${esc(h.nombre)}</h3>
+    <div class="scroll-x"><table class="t">
+      <tr><th>Material</th><th class="n">Cantidad</th></tr>
+      ${c.mats.map(m=>`<tr><td>${esc(m.n)}</td><td class="n">${qty(m.q)} ${m.u}</td></tr>`).join("")}
+    </table></div>
+    <div class="res" style="margin-top:12px">
+      <div><div class="k">Perímetro de junta</div><div class="v">${d2(c.perimML)} <small>ml</small></div><div class="s">espuma y sellado</div></div>
+      <div><div class="k">Herraje</div><div class="v">${c.bisagras} <small>bisagras</small></div><div class="s">${c.puntosCierre?c.puntosCierre+" puntos de cierre por hoja":"sin apertura"}</div></div>
+    </div>
+  </div>
+  <div class="card"><h3>Toda la obra</h3>
+    <div class="scroll-x"><table class="t">
+      <tr><th>Material</th><th class="n">Cantidad</th></tr>
+      ${Object.values(todos).sort((a,b)=>a.n.localeCompare(b.n,"es")).map(m=>`<tr><td>${esc(m.n)}</td><td class="n">${qty(m.q)} ${m.u}</td></tr>`).join("")}
+    </table></div>
+  </div>
+  <div class="card"><h3>Herramienta de montaje</h3>
+    <div class="grid g2">
+      ${["Nivel de 60 y de 120 cm","Láser de líneas","Taladro percutor + brocas","Pistola de espuma","Pistola de silicona","Juego de cuñas","Ventosas de cristalero","Llaves allen de regulación","Sierra de calar / radial","Aspirador de obra","Escalera o andamio","Cinta de carrocero"].map(x=>`<div class="note i" style="margin:0"><span class="ic">·</span><span>${x}</span></div>`).join("")}
+    </div>
+  </div>`;
+}
+
+const TAREAS=[
+ {k:"t1",t:"Confirmar medidas antes de pedir",d:"Tres tomas de ancho y alto, diagonales y plomo del hueco"},
+ {k:"t2",t:"Revisar el albarán contra el parte",d:"Medida, color, apertura, vidrio y accesorios"},
+ {k:"t3",t:"Proteger suelo y mobiliario",d:"Cartón, plástico y cinta antes de desmontar"},
+ {k:"t4",t:"Desmontar la carpintería antigua",d:"Hoja primero, luego marco; cuidado con el vidrio viejo"},
+ {k:"t5",t:"Preparar el hueco",d:"Limpiar, sanear jambas y comprobar que el alféizar tiene pendiente al exterior"},
+ {k:"t6",t:"Presentar y calzar",d:"Cuñas en los puntos de anclaje, nunca a media luz del perfil"},
+ {k:"t7",t:"Aplomar y nivelar",d:"Plomo en las dos caras, nivel en travesaño y diagonales iguales"},
+ {k:"t8",t:"Anclar el marco",d:"Tornillos a 15 cm de esquinas y cada 70 cm, sin apretar hasta deformar"},
+ {k:"t9",t:"Aislar la junta",d:"Espuma de baja expansión en cordón continuo, sin rellenar a tope"},
+ {k:"t10",t:"Sellar el exterior",d:"Silicona neutra sobre superficie seca, cordón continuo y alisado"},
+ {k:"t11",t:"Montar hojas y acristalar",d:"Calzos de vidrio en su posición según tipo de apertura"},
+ {k:"t12",t:"Regular herraje",d:"Compresión, altura y lateral; la hoja debe quedarse donde la sueltas"},
+ {k:"t13",t:"Montar persiana y probar recorrido",d:"Finales de carrera del motor y topes de la lama"},
+ {k:"t14",t:"Colocar tapajuntas y remates",d:"Inglete limpio y sellado del encuentro con la pared"},
+ {k:"t15",t:"Prueba de apertura y estanqueidad",d:"Abrir y cerrar todo, comprobar que no entra aire ni roza"},
+ {k:"t16",t:"Limpiar y retirar escombro",d:"Quitar films de protección antes de irte"},
+ {k:"t17",t:"Explicar al cliente",d:"Uso del oscilobatiente, limpieza de juntas y garantía"}
+];
+function vMontaje(){
+  const h=sel(), c=calc(h);
+  const done=TAREAS.filter(t=>h.tareas&&h.tareas[t.k]).length;
+  return `<div class="sect-title">Montaje</div>
+  <div class="sect-sub">${esc(h.nombre)} · ${done}/${TAREAS.length} completado · ${d1(c.horas)} h estimadas</div>
+  <div class="card"><h3>Checklist</h3>
+    ${TAREAS.map(t=>{ const on=!!(h.tareas&&h.tareas[t.k]);
+      return `<label class="task${on?" done":""}"><input type="checkbox" data-task="${t.k}"${on?" checked":""}/><span><span class="tx">${esc(t.t)}</span><span class="td">${esc(t.d)}</span></span></label>`;}).join("")}
+  </div>
+  <div class="card"><h3>Puntos de anclaje</h3>
+    <div class="res">
+      <div><div class="k">Tornillos por lado vertical</div><div class="v">${Math.max(2,Math.ceil(c.altoFab/700)+1)}</div><div class="s">a 15 cm de cada esquina</div></div>
+      <div><div class="k">Tornillos por lado horizontal</div><div class="v">${Math.max(2,Math.ceil(c.anchoFab/700)+1)}</div><div class="s">máximo 70 cm entre ellos</div></div>
+    </div>
+    <div class="note i" style="margin-top:10px"><span class="ic">i</span><span>En oscilobatiente refuerza el anclaje junto a la bisagra inferior y al compás: ahí se concentra todo el peso de la hoja (${c.pesoHoja} kg).</span></div>
+  </div>
+  <div class="card"><h3>Avisos de seguridad</h3>${avisosHTML({av:c.av.filter(a=>a.t!=="i")})}</div>`;
+}
+
+function vPrecio(){
+  const h=sel(), c=calc(h), t=S.tarifa, T=totalObra();
+  return `<div class="sect-title">Presupuesto</div>
+  <div class="sect-sub">Ajusta tu tarifa una vez; se aplica a todos los huecos.</div>
+  <div class="card"><h3>Desglose de ${esc(h.nombre)}</h3>
+    <div class="scroll-x"><table class="t">
+      <tr><th>Concepto</th><th class="n">Importe</th></tr>
+      ${c.linea.map(l=>`<tr><td>${esc(l.c)}</td><td class="n">${eur(l.v)}</td></tr>`).join("")}
+      ${c.ud>1?`<tr><td>× ${c.ud} unidades iguales</td><td class="n">${eur(c.materialTot)}</td></tr>`:""}
+      <tr><td>Mano de obra · ${d1(c.horas)} h a ${eur(num(t.hora))}/h</td><td class="n">${eur(c.manoObra)}</td></tr>
+      <tr class="tot"><td>Total del hueco</td><td class="n">${eur(c.totalHueco)}</td></tr>
+    </table></div>
+    <div class="s" style="font-size:11.5px;color:var(--ink-3);margin-top:8px">Facturado sobre ${d2(c.m2Fact)} m² (mínimo ${num(t.m2min)} m²) a ${eur(c.pBase)}/m².</div>
+  </div>
+  <div class="card"><h3>Cómo se calcula este hueco</h3>
+    <div class="grid g2">
+      ${fSel("Origen del precio","modoPrecio",`
+        <option value="tarifa"${h.modoPrecio!=="coste"?" selected":""}>Mi tarifa por m²</option>
+        <option value="coste"${h.modoPrecio==="coste"?" selected":""}>Coste de proveedor + margen</option>`,true)}
+      ${h.modoPrecio==="coste"?fNum("Coste del proveedor por unidad (€)","coste","Sin IVA",0.01):`<div class="f"><label>Precio de tarifa</label><input type="text" value="${eur(c.pBase)}/m²" readonly/></div>`}
+    </div>
+    ${h.modoPrecio==="coste"?`<div class="grid g2" style="margin-top:10px">
+      ${fTxt("Proveedor","origen","Ventanas del Sur SL")}
+      ${fNum("Margen (%)","tarifa.margen","")}
+    </div>
+    <div class="res" style="margin-top:12px">
+      <div><div class="k">Coste</div><div class="v">${eur(c.costeProv)}</div></div>
+      <div><div class="k">Tu margen</div><div class="v" style="color:var(--ok)">${eur(c.margenEur)}</div></div>
+    </div>`:""}
+  </div>
+  <div class="card"><h3>Tarifa</h3>
+    <div class="grid g3">
+      ${fNum("Mínimo facturable (m²)","tarifa.m2min","",0.1)}
+      ${fNum("Mano de obra (€/h)","tarifa.hora")}
+      ${fNum("Desplazamiento (€)","tarifa.desplaz")}
+      ${fNum("Retirada de escombro (€)","tarifa.retirada")}
+      ${fNum("Descuento (%)","tarifa.descuento")}
+      ${fSel("IVA","tarifa.iva",`<option value="10"${num(t.iva)===10?" selected":""}>10 % reforma vivienda</option><option value="21"${num(t.iva)===21?" selected":""}>21 % general</option><option value="4"${num(t.iva)===4?" selected":""}>4 % accesibilidad</option>`,true)}
+    </div>
+    <div class="grid g3" style="margin-top:10px">
+      ${fNum("Persiana (€/m²)","tarifa.persianaM2")}
+      ${fNum("Motor (€)","tarifa.motor")}
+      ${fNum("Mando (€)","tarifa.mando")}
+      ${fNum("Mosquitera (€/m²)","tarifa.mosquitera")}
+      ${fNum("Vierteaguas (€/ml)","tarifa.vierteaguas")}
+      ${fNum("Premarco (€/ml)","tarifa.premarco")}
+      ${fNum("Tapajuntas (€/ml)","tarifa.tapajuntas")}
+    </div>
+    <h3 style="margin-top:16px">Precio base €/m² · ${esc(MATERIALES[h.material].n)}</h3>
+    <div class="grid g3">
+      ${["fijo","practicable","corredera","puerta","mampara"].map(f=>fNum(f.charAt(0).toUpperCase()+f.slice(1),"tarifa.p."+h.material+"."+f)).join("")}
+    </div>
+  </div>
+  <div class="card"><h3>Total de la obra</h3>
+    <div class="scroll-x"><table class="t">
+      ${S.huecos.map(x=>{const cc=calc(x);return `<tr><td>${esc(x.nombre)}${cc.ud>1?" ×"+cc.ud:""}</td><td class="n">${eur(cc.totalHueco)}</td></tr>`;}).join("")}
+      <tr><td>Desplazamiento y retirada</td><td class="n">${eur(T.extras)}</td></tr>
+      ${T.dto>0?`<tr><td>Descuento ${num(t.descuento)} %</td><td class="n">−${eur(T.dto)}</td></tr>`:""}
+      <tr><td>Base imponible</td><td class="n">${eur(T.base)}</td></tr>
+      <tr><td>IVA ${num(t.iva)} %</td><td class="n">${eur(T.iva)}</td></tr>
+      <tr class="tot"><td>Total</td><td class="n">${eur(T.total)}</td></tr>
+    </table></div>
+    ${T.coste>0?`<div class="res" style="margin-top:12px">
+      <div><div class="k">Coste de proveedor</div><div class="v">${eur(T.coste)}</div><div class="s">lo que pagas tú</div></div>
+      <div><div class="k">Margen sobre la base</div><div class="v" style="color:var(--ok)">${eur(T.margen)}</div><div class="s">${T.base>0?d1(T.margen/T.base*100):"0"} % de la base imponible</div></div>
+      <div class="wide"><div class="s">Este bloque es solo para ti: no sale en el PDF del cliente.</div></div>
+    </div>`:""}
+    <div class="row" style="margin-top:12px">
+      <button class="btn" data-act="pdf">Descargar presupuesto en PDF</button>
+      <button class="btn sec" data-act="pdftaller">Hoja de taller</button>
+    </div>
+    <div id="pdfMsgP" style="margin-top:10px"></div>
+    ${!S.empresa.nombre?'<div class="note w" style="margin-top:8px"><span class="ic">!</span><span>Todavía no has puesto el nombre de tu empresa ni el logotipo. Rellénalos en la pestaña Empresa y el PDF saldrá con tu membrete.</span></div>':""}
+  </div>`;
+}
+
+function textoPedido(){
+  const L=[], t=S.tarifa, T=totalObra();
+  L.push("HOJA DE PEDIDO Y MEDIDAS");
+  L.push("Obra: "+S.obra.nombre);
+  L.push("Cliente: "+S.obra.cliente+(S.obra.tel?" · "+S.obra.tel:""));
+  L.push("Fecha: "+S.obra.fecha+(S.obra.medidor?" · Medidor: "+S.obra.medidor:""));
+  if(S.obra.notas) L.push("Notas: "+S.obra.notas);
+  L.push("");
+  S.huecos.forEach((h,i)=>{ const c=calc(h), C=c.C;
+    L.push("── "+String(i+1).padStart(2,"0")+" · "+h.nombre+(c.ud>1?"  ×"+c.ud:""));
+    L.push("   Tipología: "+c.T.n+" · "+c.M.n+(h.serie?" · "+h.serie:""));
+    L.push("   Instalación: "+({obra:"a hueco de obra",premarco:"sobre premarco",renovacion:"renovación con solape"}[h.instalacion]));
+    L.push("   Hueco: "+c.A+" × "+c.H+" mm");
+    L.push("   FABRICACIÓN: "+c.anchoFab+" × "+c.altoFab+" mm"+(c.restaCajon?"  (cajón "+c.cajon+" mm incluido)":""));
+    if(c.nHojas) L.push("   Hoja: "+c.anchoHoja+" × "+c.altoHoja+" mm ("+c.nHojas+" hojas)");
+    if(c.montante) L.push("   Fijo superior: "+c.montante+" mm");
+    L.push("   Color: "+C.n+(h.color.bicolor?" / interior "+(COLORES.find(x=>x.id===h.color.interior)||C).n:""));
+    L.push("   Vidrio: "+c.V.n);
+    c.piezas.forEach(p=>L.push("     · "+p.n*c.ud+" ud  "+p.a+" × "+p.h+" mm  ("+p.t+")"));
+    if(c.P){ const p=h.persiana;
+      L.push("   Persiana: "+c.P.lama+" · cajón "+num(p.cajon)+" mm · lama "+c.P.anchoLama+" × "+c.P.altoLama+" mm");
+      L.push("     Accionamiento: "+({cinta:"cinta y recogedor",torno:"torno",motor:"motor "+c.P.nm+" Nm"}[p.accion])+(p.accion==="motor"&&p.mando?" + mando":""));
+      if(!c.P.cajonOk) L.push("     *** CAJÓN INSUFICIENTE: mínimo "+c.P.cajonMin+" mm ***");
+    }
+    const ex=Object.keys(h.extras).filter(k=>h.extras[k]);
+    if(ex.length) L.push("   Extras: "+ex.map(k=>({mosquitera:"mosquitera",vierteaguas:"vierteaguas",premarco:"premarco",tapajuntas:"tapajuntas",manillaSeg:"manilla con llave",cierreSeg:"herraje antipalanca",limitador:"limitador",barrotillo:"barrotillo",remates:"remates y banda"}[k]||k)).join(", "));
+    if(h.notas) L.push("   Nota: "+h.notas);
+    L.push("   Peso conjunto: "+d1(c.pesoTotal)+" kg · "+(c.T.mampara?"":"Uw ~"+d2(c.uw)+" W/m²K · ")+d1(c.horas)+" h de montaje");
+    L.push("");
+  });
+  L.push("── MATERIAL DE INSTALACIÓN (toda la obra)");
+  const todos={};
+  S.huecos.forEach(x=>{ calc(x).mats.forEach(m=>{ todos[m.n]=todos[m.n]||{n:m.n,q:0,u:m.u}; todos[m.n].q+=m.q; }); });
+  Object.values(todos).sort((a,b)=>a.n.localeCompare(b.n,"es")).forEach(m=>L.push("   "+qty(m.q)+" "+m.u+"  "+m.n));
+  L.push("");
+  L.push("── PRESUPUESTO");
+  S.huecos.forEach((h,i)=>L.push("   "+String(i+1).padStart(2,"0")+" "+h.nombre+": "+eur(calc(h).totalHueco)));
+  L.push("   Desplazamiento y retirada: "+eur(T.extras));
+  if(T.dto>0) L.push("   Descuento "+num(t.descuento)+" %: −"+eur(T.dto));
+  L.push("   Base imponible: "+eur(T.base));
+  L.push("   IVA "+num(t.iva)+" %: "+eur(T.iva));
+  L.push("   TOTAL: "+eur(T.total));
+  return L.join("\n");
+}
+function vPedido(){
+  return `<div class="sect-title">Pedido y copia de seguridad</div>
+  <div class="sect-sub">Copia el texto y pégalo en el email de fábrica o en el presupuesto del cliente.</div>
+  <div class="card"><h3>PDF</h3>
+    <div class="row">
+      <button class="btn" data-act="pdf">Presupuesto en PDF</button>
+      <button class="btn sec" data-act="pdftaller">Hoja de taller en PDF</button>
+    </div>
+    <div id="pdfMsgD" style="margin-top:10px"></div>
+    <div class="note i" style="margin-top:8px"><span class="ic">i</span><span>El presupuesto sale con tu logotipo, tus datos y las condiciones de la pestaña Empresa. La hoja de taller lleva el alzado dibujado, el despiece de vidrio y el material.</span></div>
+  </div>
+  <div class="card"><h3>Hoja de pedido</h3>
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn sec" data-act="copy">Copiar hoja de pedido</button>
+      <button class="btn sec" data-act="copyjson">Copiar copia de seguridad</button>
+    </div>
+    <div id="copyMsg"></div>
+    <pre class="out" id="outPedido">${esc(textoPedido())}</pre>
+  </div>
+  <div class="card"><h3>Restaurar</h3>
+    <div class="f"><label>Pega aquí una copia de seguridad</label><textarea id="imp" rows="3" placeholder='{"obra":...}'></textarea></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn sec" data-act="import">Restaurar datos</button>
+      <button class="btn danger" data-act="reset">Empezar obra nueva</button>
+    </div>
+    <div id="impMsg"></div>
+    <div class="note i" style="margin-top:10px"><span class="ic">i</span><span>Los datos se guardan en el navegador de este dispositivo. Si limpias los datos del navegador o cambias de móvil, se pierden: guarda la copia de seguridad en una nota o envíatela por email.</span></div>
+  </div>`;
+}
+
+/* ============ RENDER ============ */
+function renderTabs(){
+  $("#tabs").innerHTML=TABS.map(t=>`<button class="tab" role="tab" data-tab="${t.k}" aria-selected="${S.tab===t.k}">${t.n}${t.k==="obra"?`<span class="n">${S.huecos.length}</span>`:""}</button>`).join("");
+}
+function renderSticky(){
+  const h=sel(); if(!h){ $("#sticky").innerHTML=""; return; }
+  const c=calc(h);
+  const dan=c.av.filter(a=>a.t==="d").length, war=c.av.filter(a=>a.t==="w").length;
+  $("#sticky").innerHTML=`<div class="sticky-in">
+    <div style="min-width:0;flex:1">
+      <div class="lb">Fabricación · ${esc(h.nombre)}</div>
+      <div class="big">${c.anchoFab} × ${c.altoFab} mm</div>
+    </div>
+    <div class="sep"></div>
+    <div style="text-align:right;flex:none">
+      <div class="lb">Hueco</div>
+      <div class="big">${eur(c.totalHueco)}</div>
+    </div>
+    <div style="flex:none">${dan?`<span class="pill da">${dan}</span>`:(war?`<span class="pill wa">${war}</span>`:`<span class="pill ok">OK</span>`)}</div>
+  </div>`;
+}
+function renderAll(){
+  $("#obraName").textContent=S.obra.nombre||"Obra";
+  $("#obraSub").textContent=(S.obra.cliente||"")+(S.obra.fecha?" · "+S.obra.fecha:"");
+  renderTabs();
+  const aviso = SAVE_OK ? "" : `<div class="note d" style="margin-bottom:12px"><span class="ic">!!</span><span><b>Este navegador no está guardando nada.</b> Has abierto el archivo desde el gestor de archivos (dirección <span class="mono">content://</span>) y ahí no se puede guardar. Escribe en la barra de Chrome <span class="mono">file:///sdcard/Download/Parte-de-Hueco.html</span> y ábrelo así, o usa la versión en claude.ai. Mientras tanto copia tus datos desde Pedido antes de cerrar.</span></div>`;
+  const v={empresa:vEmpresa,importar:vImportar,obra:vObra,medidas:vMedidas,persiana:vPersiana,vidrio:vVidrio,materiales:vMateriales,montaje:vMontaje,precio:vPrecio,pedido:vPedido}[S.tab]||vObra;
+  $("#view").innerHTML=aviso+v();
+  renderSticky();
+  save();
+}
+function refresh(){
+  // actualiza resultados sin tocar los campos en edición
+  renderSticky();
+  const h=sel(), c=calc(h);
+  const av=document.getElementById("avisos"); if(av) av.innerHTML=avisosHTML(c);
+  $("#obraName").textContent=S.obra.nombre||"Obra";
+  $("#obraSub").textContent=(S.obra.cliente||"")+(S.obra.fecha?" · "+S.obra.fecha:"");
+  if(S.tab==="medidas"||S.tab==="persiana"||S.tab==="vidrio"||S.tab==="materiales"||S.tab==="precio"||S.tab==="obra"||S.tab==="montaje"){
+    // re-render diferido de paneles de resultado
+    clearTimeout(refresh._t);
+    refresh._t=setTimeout(()=>{ const act=document.activeElement, p=act&&act.dataset?act.dataset.path:null;
+      const ss=act&&act.selectionStart, se=act&&act.selectionEnd;
+      renderAll();
+      if(p){ const el=document.querySelector('[data-path="'+p+'"]'); if(el){ el.focus();
+        try{ if(ss!=null&&el.setSelectionRange) el.setSelectionRange(ss,se); }catch(e){} } }
+    },420);
+  }
+  save();
+}
+
+/* ============ EVENTOS ============ */
+document.addEventListener("input",e=>{
+  const el=e.target;
+  if(el.id==="impTexto"){ IMP.texto=el.value; return; }
+  if(el.dataset && el.dataset.path){
+    const v = el.type==="checkbox" ? el.checked : (el.type==="number" ? num(el.value) : el.value);
+    setPath(el.dataset.path,v);
+    if(el.dataset.path==="tipologia"||el.dataset.path==="material"){ const h=sel(); if(h.autoDesc!==false) h.descVidrio=descAuto(h); }
+    refresh();
+  }
+});
+document.addEventListener("change",e=>{
+  const el=e.target;
+  if(el.dataset && el.dataset.path){
+    const v = el.type==="checkbox" ? el.checked : (el.tagName==="SELECT"||el.type!=="number" ? el.value : num(el.value));
+    setPath(el.dataset.path, el.type==="number"?num(el.value):v);
+    const h=sel();
+    if(el.dataset.path==="tipologia"){ const T=TIPOS[h.tipologia];
+      if(T.mampara && VIDRIOS[h.vidrio].cat!=="mampara") h.vidrio="templado-8";
+      if(!T.mampara && VIDRIOS[h.vidrio].cat==="mampara") h.vidrio="4be-16-4";
+      if(T.mampara) h.persiana.on=false;
+    }
+    if(el.dataset.path==="material"||el.dataset.path==="tipologia"){ if(h.autoDesc!==false) h.descVidrio=descAuto(h); }
+    if(el.dataset.struct){ clearTimeout(refresh._t); renderAll(); } else refresh();
+  }
+  if(el.id==="pdfProv"){ const f=el.files&&el.files[0]; el.value=""; cargarPDFProveedor(f); return; }
+  if(el.id==="impFab"){ IMP.fabricacion=el.checked; return; }
+  if(el.dataset && el.dataset.imp!==undefined){
+    const i=+el.dataset.imp;
+    if(IMP.items[i]){ IMP.items[i].sel=el.checked; el.closest(".impitem").classList.toggle("on",el.checked);
+      const b=document.querySelector('[data-act="impcrear"]');
+      if(b) b.textContent="Crear "+IMP.items.filter(r=>r.sel).length+" huecos"; }
+    return;
+  }
+  if(el.dataset && el.dataset.logo){
+    const f=el.files&&el.files[0];
+    el.value="";
+    cargarLogo(f,el.dataset.logo);
+    return;
+  }
+  if(el.dataset && el.dataset.task){
+    const h=sel(); h.tareas=h.tareas||{}; h.tareas[el.dataset.task]=el.checked;
+    el.closest(".task").classList.toggle("done",el.checked);
+    const done=TAREAS.filter(t=>h.tareas[t.k]).length;
+    const sub=document.querySelector(".sect-sub"); if(sub) sub.textContent=h.nombre+" · "+done+"/"+TAREAS.length+" completado · "+d1(calc(h).horas)+" h estimadas";
+    save();
+  }
+});
+document.addEventListener("click",e=>{
+  const tab=e.target.closest("[data-tab]");
+  if(tab){ S.tab=tab.dataset.tab; clearTimeout(refresh._t); renderAll(); window.scrollTo({top:0,behavior:"instant"}); return; }
+  const pick=e.target.closest("[data-pick]");
+  if(pick){ S.sel=pick.dataset.pick; S.tab="medidas"; clearTimeout(refresh._t); renderAll(); window.scrollTo({top:0}); return; }
+  const col=e.target.closest("[data-color]");
+  if(col){ sel().color.id=col.dataset.color; clearTimeout(refresh._t); renderAll(); return; }
+  const pb=e.target.closest("[data-paste]");
+  if(pb){ PASTE_SLOT=pb.dataset.paste;
+    document.querySelectorAll(".pastebox").forEach(x=>x.classList.remove("arm"));
+    pb.classList.add("arm"); pb.textContent="Listo: mantén pulsado aquí y elige Pegar";
+    pb.focus(); return; }
+  const act=e.target.closest("[data-act]");
+  if(!act) return;
+  const a=act.dataset.act, h=sel();
+  if(a==="pdf"||a==="pdftaller"){
+    const box=document.getElementById("pdfMsgP")?"pdfMsgP":(document.getElementById("pdfMsgD")?"pdfMsgD":"pdfMsgE");
+    descargarPDF(a==="pdf"?"presupuesto":"taller",box);
+  }
+  else if(a==="impleer"){ const ta=document.getElementById("impTexto"); if(ta) IMP.texto=ta.value; interpretarPDF(); }
+  else if(a==="impborrar"){ IMP={texto:"",items:[],estado:"",archivo:"",fabricacion:IMP.fabricacion}; clearTimeout(refresh._t); renderAll(); }
+  else if(a==="impcancelar"){ IMP.items=[]; IMP.estado=""; clearTimeout(refresh._t); renderAll(); }
+  else if(a==="impcrear"){
+    const nuevos=IMP.items.filter(r=>r.sel).map(r=>mapearItem(r.it));
+    if(!nuevos.length){ msgBox("impMsg2","w","No has marcado ninguna partida."); return; }
+    S.huecos=S.huecos.filter(x=>!x.ejemplo).concat(nuevos);
+    if(!S.huecos.length) S.huecos=nuevos;
+    S.sel=nuevos[0].id; IMP.items=[]; IMP.estado=""; S.tab="obra";
+    clearTimeout(refresh._t); renderAll(); window.scrollTo({top:0});
+  }
+  else if(a==="dellogo"){ S.empresa[act.dataset.slot]=null; clearTimeout(refresh._t); renderAll(); }
+  else if(a==="add"||a==="new"){ const n=nuevoHueco("Hueco "+(S.huecos.length+1)); S.huecos.push(n); S.sel=n.id; S.tab="medidas"; clearTimeout(refresh._t); renderAll(); window.scrollTo({top:0}); }
+  else if(a==="dup"){ const n=JSON.parse(JSON.stringify(h)); n.id=uid(); n.nombre=h.nombre+" (copia)"; delete n.ejemplo; n.tareas={}; S.huecos.push(n); S.sel=n.id; clearTimeout(refresh._t); renderAll(); }
+  else if(a==="del"){ if(act.dataset.sure){ S.huecos=S.huecos.filter(x=>x.id!==h.id); S.sel=S.huecos[0].id; clearTimeout(refresh._t); renderAll(); }
+    else { act.dataset.sure="1"; act.textContent="Pulsa otra vez para eliminar"; setTimeout(()=>{ if(act.isConnected){ delete act.dataset.sure; act.textContent="Eliminar"; } },4000); } }
+  else if(a==="copy"||a==="copyjson"){
+    const txt = a==="copy"?textoPedido():JSON.stringify(S);
+    const msg=$("#copyMsg");
+    const ok=()=>{ msg.innerHTML='<div class="note o"><span class="ic">OK</span><span>Copiado al portapapeles.</span></div>'; setTimeout(()=>{if(msg)msg.innerHTML="";},3000); };
+    const fail=()=>{ const pre=$("#outPedido"); if(a==="copy"&&pre){ const r=document.createRange(); r.selectNodeContents(pre); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }
+      msg.innerHTML='<div class="note w"><span class="ic">!</span><span>El navegador no deja copiar solo. El texto queda seleccionado: cópialo a mano.</span></div>'; };
+    try{ navigator.clipboard.writeText(txt).then(ok,fail); }catch(err){ fail(); }
+  }
+  else if(a==="import"){
+    const ta=$("#imp"), msg=$("#impMsg");
+    try{ const d=JSON.parse(ta.value); if(!d.huecos||!d.huecos.length) throw new Error("sin huecos");
+      S=d; S.tarifa=Object.assign(JSON.parse(JSON.stringify(TARIFA_DEF)),S.tarifa||{});
+      S.empresa=Object.assign(JSON.parse(JSON.stringify(EMPRESA_DEF)),S.empresa||{});
+      S.sel=S.huecos[0].id; S.tab="obra"; renderAll(); }
+    catch(err){ msg.innerHTML='<div class="note d"><span class="ic">!!</span><span>Ese texto no es una copia de seguridad válida. Pega el bloque completo, desde la primera llave hasta la última.</span></div>'; }
+  }
+  else if(a==="reset"){
+    if(act.dataset.sure){ S=seed(); S.obra={nombre:"Obra nueva",cliente:"",tel:"",email:"",fecha:new Date().toISOString().slice(0,10),medidor:"",notas:""};
+      S.huecos=[nuevoHueco("Hueco 1")]; S.sel=S.huecos[0].id; S.tab="obra"; renderAll(); }
+    else { act.dataset.sure="1"; act.textContent="Se borrará todo. Pulsa otra vez"; setTimeout(()=>{ if(act.isConnected){ delete act.dataset.sure; act.textContent="Empezar obra nueva"; } },4000); }
+  }
+});
+let PASTE_SLOT=null;
+document.addEventListener("paste",e=>{
+  const items=(e.clipboardData&&e.clipboardData.items)||[];
+  for(let i=0;i<items.length;i++){
+    if(items[i].type&&items[i].type.indexOf("image/")===0){
+      const f=items[i].getAsFile();
+      if(f){ e.preventDefault(); cargarLogo(f,PASTE_SLOT||"logo"); return; }
+    }
+  }
+});
+document.addEventListener("dragover",e=>{
+  const z=e.target&&e.target.closest?e.target.closest("#dropPdf, .logobox"):null;
+  if(!z) return;
+  e.preventDefault(); z.classList.add("over");
+});
+document.addEventListener("dragleave",e=>{
+  const z=e.target&&e.target.closest?e.target.closest("#dropPdf, .logobox"):null;
+  if(z) z.classList.remove("over");
+});
+document.addEventListener("drop",e=>{
+  const z=e.target&&e.target.closest?e.target.closest("#dropPdf, .logobox"):null;
+  if(!z) return;
+  e.preventDefault(); z.classList.remove("over");
+  const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+  if(!f) return;
+  if(z.id==="dropPdf") cargarPDFProveedor(f);
+  else { const inp=z.querySelector("input[data-logo]"); if(inp) cargarLogo(f,inp.dataset.logo); }
+});
+$("#btnNew").addEventListener("click",()=>{ const n=nuevoHueco("Hueco "+(S.huecos.length+1)); S.huecos.push(n); S.sel=n.id; S.tab="medidas"; clearTimeout(refresh._t); renderAll(); window.scrollTo({top:0}); });
+$("#btnTheme").addEventListener("click",()=>{
+  const r=document.documentElement, cur=r.getAttribute("data-theme");
+  const dark=cur? cur==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.setAttribute("data-theme", dark?"light":"dark");
+  try{ localStorage.setItem(KEY+"-theme", dark?"light":"dark"); }catch(e){}
+});
+try{ const th=localStorage.getItem(KEY+"-theme"); if(th) document.documentElement.setAttribute("data-theme",th); }catch(e){}
+renderAll();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js").catch(function () {});
+  });
+}
+</script>
 </body>
 </html>
